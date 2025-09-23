@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "word": "Apple",
+    "image": "🍎",
+    "category": "fruit",
+    "difficulty": 1
+  },
+  {
+    "id": 2,
+    "word": "Dog",
+    "image": "🐕",
+    "category": "animal",
+    "difficulty": 1
+  },
+  {
+    "id": 3,
+    "word": "Ball",
+    "image": "⚽",
+    "category": "toy",
+    "difficulty": 1
+  },
+  {
+    "id": 4,
+    "word": "Cat",
+    "image": "🐱",
+    "category": "animal",
+    "difficulty": 1
+  },
+  {
+    "id": 5,
+    "word": "Banana",
+    "image": "🍌",
+    "category": "fruit",
+    "difficulty": 2
+  },
+  {
+    "id": 6,
+    "word": "Bird",
+    "image": "🐦",
+    "category": "animal",
+    "difficulty": 2
+  },
+  {
+    "id": 7,
+    "word": "Book",
+    "image": "📚",
+    "category": "object",
+    "difficulty": 2
+  },
+  {
+    "id": 8,
+    "word": "Flower",
+    "image": "🌺",
+    "category": "nature",
+    "difficulty": 2
+  },
+  {
+    "id": 9,
+    "word": "House",
+    "image": "🏠",
+    "category": "object",
+    "difficulty": 3
+  },
+  {
+    "id": 10,
+    "word": "Rainbow",
+    "image": "🌈",
+    "category": "nature",
+    "difficulty": 3
+  }
+]

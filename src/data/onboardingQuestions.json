@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "question": "How often does your child make eye contact when speaking with you?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 2,
+    "question": "How often does your child respond when their name is called?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 3,
+    "question": "How often does your child use gestures (pointing, waving) to communicate?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 4,
+    "question": "How often does your child engage in back-and-forth conversation?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 5,
+    "question": "How often does your child show interest in other children?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 6,
+    "question": "How often does your child repeat words or phrases they've heard?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 7,
+    "question": "How often does your child have difficulty with changes in routine?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 8,
+    "question": "How often does your child show unusual reactions to sounds, textures, or lights?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 9,
+    "question": "How often does your child engage in repetitive behaviors or movements?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  },
+  {
+    "id": 10,
+    "question": "How often does your child demonstrate understanding of simple instructions?",
+    "options": ["Rarely", "Sometimes", "Often", "Always"]
+  }
+]

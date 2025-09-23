@@ -1,11 +1,29 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/context/UserContext';
 
 const Index = () => {
+  const { state } = useUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect based on user state
+    if (!state.user?.isAuthenticated) {
+      navigate('/auth');
+    } else if (!state.child) {
+      navigate('/child-info');
+    } else if (!state.onboardingCompleted) {
+      navigate('/onboarding');
+    } else {
+      navigate('/dashboard');
+    }
+  }, [state, navigate]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+        <div className="text-8xl mb-4 animate-pulse-soft">🌈</div>
+        <h1 className="text-therapy-xl text-primary mb-2">Loading TherapyPal...</h1>
       </div>
     </div>
   );
