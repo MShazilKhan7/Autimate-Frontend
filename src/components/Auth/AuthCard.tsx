@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import EmailVerification from './EmailVerification';
 
 interface AuthCardProps {
   onAuthSuccess: () => void;
@@ -15,6 +16,8 @@ interface AuthCardProps {
 export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -73,23 +76,62 @@ export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
 
     // Simulate API call
     setTimeout(() => {
-      dispatch({
-        type: 'SET_USER',
-        payload: {
-          email: formData.email,
-          isAuthenticated: true,
-        },
-      });
+      if (isLogin) {
+        // Login flow - go directly to success
+        dispatch({
+          type: 'SET_USER',
+          payload: {
+            email: formData.email,
+            isAuthenticated: true,
+          },
+        });
 
-      toast({
-        title: isLogin ? 'Welcome back!' : 'Account created successfully!',
-        description: 'Redirecting to your dashboard...',
-      });
+        toast({
+          title: 'Welcome back!',
+          description: 'Redirecting to your dashboard...',
+        });
 
-      setIsLoading(false);
-      onAuthSuccess();
+        setIsLoading(false);
+        onAuthSuccess();
+      } else {
+        // Signup flow - show email verification
+        setPendingEmail(formData.email);
+        setShowEmailVerification(true);
+        setIsLoading(false);
+        
+        toast({
+          title: 'Account Created!',
+          description: 'Please verify your email to continue.',
+        });
+      }
     }, 1500);
   };
+
+  const handleEmailVerificationSuccess = () => {
+    dispatch({
+      type: 'SET_USER',
+      payload: {
+        email: pendingEmail,
+        isAuthenticated: true,
+      },
+    });
+    onAuthSuccess();
+  };
+
+  const handleBackToSignup = () => {
+    setShowEmailVerification(false);
+    setPendingEmail('');
+  };
+
+  if (showEmailVerification) {
+    return (
+      <EmailVerification
+        email={pendingEmail}
+        onVerifySuccess={handleEmailVerificationSuccess}
+        onBack={handleBackToSignup}
+      />
+    );
+  }
 
   return (
     <motion.div
