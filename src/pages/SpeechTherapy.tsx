@@ -5,9 +5,9 @@ import Layout from '@/components/Layout/Layout';
 import SpeechCard from '@/components/Therapy/SpeechCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import speechQuestions from '@/data/speechQuestions.json';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SpeechTherapy() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -16,21 +16,17 @@ export default function SpeechTherapy() {
   const [showResults, setShowResults] = useState(false);
   const [currentScore, setCurrentScore] = useState<number | undefined>();
 
-  const { state, dispatch } = useUser();
+  const { isLoggedIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!state.user?.isAuthenticated) {
+    if (!isLoggedIn) {
       navigate('/auth');
       return;
     }
-    if (!state.onboardingCompleted) {
-      navigate('/dashboard');
-      return;
-    }
-  }, [state.user, state.onboardingCompleted, navigate]);
+  }, [isLoggedIn, navigate]);
 
   const currentQuestion = speechQuestions[currentQuestionIndex];
   const totalQuestions = speechQuestions.length;
@@ -64,23 +60,19 @@ export default function SpeechTherapy() {
       date: new Date().toISOString(),
       type: 'speech' as const,
       score: percentage,
-      level: state.currentLevel,
+      level: 10,
     };
-
-    dispatch({ type: 'ADD_THERAPY_SESSION', payload: session });
 
     // Update level progress
     const progressIncrease = Math.max(10, percentage / 2); // At least 10% progress
-    const newProgress = Math.min(100, state.levelProgress + progressIncrease);
-    dispatch({ type: 'UPDATE_LEVEL_PROGRESS', payload: newProgress });
+    const newProgress = Math.min(100, 10 + progressIncrease);
 
     // Check for level up
     if (newProgress >= 100) {
-      dispatch({ type: 'LEVEL_UP' });
       
       toast({
         title: '🎉 Level Up!',
-        description: `Congratulations! You've reached Level ${state.currentLevel + 1}!`,
+        description: `Congratulations! You've reached Level 11!`,
       });
     } else {
       toast({
@@ -230,7 +222,7 @@ export default function SpeechTherapy() {
               Speech Therapy Session
             </h1>
             <p className="text-muted-foreground">
-              Practice pronunciation with {state.child?.name}
+              Practice pronunciation with your child
             </p>
           </motion.div>
 

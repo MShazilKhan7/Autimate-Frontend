@@ -5,6 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
+import { authAPI } from '@/api/auth';
+import { Authentication } from '@/types/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EmailVerificationProps {
   email: string;
@@ -13,51 +17,25 @@ interface EmailVerificationProps {
 }
 
 export default function EmailVerification({ email, onVerifySuccess, onBack }: EmailVerificationProps) {
+  const { setAuthentication } = useAuth();
   const [otp, setOtp] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (otp.length !== 6) {
-      toast({
-        title: 'Invalid OTP',
-        description: 'Please enter a 6-digit verification code.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Simulate verification API call
-    setTimeout(() => {
-      // For demo purposes, accept any 6-digit code
+  
+  const { mutate: verifyEmail, isPending: isVerifyEmailPending } = useMutation<
+    Authentication,
+    Error,
+    { email: string; otp: string }
+  >({
+    mutationFn: authAPI.verifyEmail,
+    onSuccess: (data: Authentication) => {
+      setAuthentication({ ...data });
       toast({
         title: 'Email Verified!',
         description: 'Your email has been successfully verified.',
       });
-      
-      setIsLoading(false);
       onVerifySuccess();
-    }, 1500);
-  };
-
-  const handleResendOTP = async () => {
-    setIsResending(true);
-    
-    // Simulate resend API call
-    setTimeout(() => {
-      toast({
-        title: 'OTP Resent',
-        description: 'A new verification code has been sent to your email.',
-      });
-      setIsResending(false);
-      setOtp(''); // Clear current OTP
-    }, 1000);
-  };
+    },
+  });
 
   return (
     <motion.div
@@ -84,7 +62,10 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
           </p>
         </motion.div>
 
-        <form onSubmit={handleVerify} className="space-y-6">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          verifyEmail({ email, otp });
+        }} className="space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,10 +120,10 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
           >
             <Button
               type="submit"
-              disabled={isLoading || otp.length !== 6}
+              disabled={isVerifyEmailPending || otp.length !== 6}
               className="w-full py-3 rounded-xl bg-primary-soft hover:bg-primary text-foreground hover:text-primary-foreground font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
-              {isLoading ? (
+              {isVerifyEmailPending ? (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -159,11 +140,10 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
               </p>
               <button
                 type="button"
-                onClick={handleResendOTP}
-                disabled={isResending}
+                // onClick={handleResendOTP}
                 className="text-sm text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
               >
-                {isResending ? 'Sending...' : 'Resend OTP'}
+                Resend OTP
               </button>
             </div>
           </motion.div>

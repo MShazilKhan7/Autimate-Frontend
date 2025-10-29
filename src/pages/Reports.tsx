@@ -1,52 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { motion } from 'framer-motion';
 import { Calendar, TrendingUp, Mic, Users, Trophy, Star } from 'lucide-react';
 import Layout from '@/components/Layout/Layout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useUser } from '@/context/UserContext';
 
 export default function Reports() {
-  const { state } = useUser();
-  const navigate = useNavigate();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!state.user?.isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-    if (!state.onboardingCompleted) {
-      navigate('/dashboard');
-      return;
-    }
-  }, [state.user, state.onboardingCompleted, navigate]);
-
-  // Calculate statistics
-  const totalSessions = state.therapySessions.length;
-  const speechSessions = state.therapySessions.filter(s => s.type === 'speech');
-  const socialTasksCount = state.socialTasksCompleted.length;
-  
-  const averageScore = speechSessions.length > 0 
-    ? speechSessions.reduce((sum, s) => sum + (s.score || 0), 0) / speechSessions.length
-    : 0;
-
-  const recentSessions = [...state.therapySessions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10);
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-therapy-success';
-    if (score >= 60) return 'text-therapy-level';
-    return 'text-muted-foreground';
-  };
-
-  const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return 'default';
-    if (score >= 60) return 'secondary';
-    return 'outline';
-  };
 
   return (
     <Layout>
@@ -61,7 +20,7 @@ export default function Reports() {
             Progress Reports
           </h1>
           <p className="text-muted-foreground text-lg">
-            Track {state.child?.name}'s therapy journey and achievements
+            Track your child's therapy journey and achievements
           </p>
         </motion.div>
 
@@ -86,10 +45,10 @@ export default function Reports() {
                   Level
                 </p>
                 <p className="text-2xl font-bold text-primary">
-                  {state.currentLevel}
+                  10
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {Math.round(state.levelProgress)}% to next level
+                  10% to next level
                 </p>
               </div>
             </Card>
@@ -114,10 +73,10 @@ export default function Reports() {
                   Speech Therapy
                 </p>
                 <p className="text-2xl font-bold text-accent">
-                  {speechSessions.length}
+                  10
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Avg: {Math.round(averageScore)}%
+                  Avg: 10%
                 </p>
               </div>
             </Card>
@@ -142,7 +101,7 @@ export default function Reports() {
                   Social Tasks
                 </p>
                 <p className="text-2xl font-bold text-primary">
-                  {socialTasksCount}
+                  10
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Completed
@@ -170,7 +129,7 @@ export default function Reports() {
                   All Sessions
                 </p>
                 <p className="text-2xl font-bold text-therapy-success">
-                  {totalSessions}
+                  10
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Activities
@@ -192,7 +151,7 @@ export default function Reports() {
               Recent Session History
             </h3>
 
-            {recentSessions.length === 0 ? (
+            {false ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📊</div>
                 <h4 className="text-lg font-medium text-muted-foreground mb-2">
@@ -204,9 +163,9 @@ export default function Reports() {
               </div>
             ) : (
               <div className="space-y-4">
-                {recentSessions.map((session, index) => (
+                {Array.from({ length: 10 }, (_, index) => (
                   <motion.div
-                    key={session.id}
+                    key={index}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -214,19 +173,21 @@ export default function Reports() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="p-2 rounded-lg bg-primary-soft/20">
-                        {session.type === 'speech' ? (
+                        {index === 0 ? (
                           <Mic className="h-4 w-4 text-primary" />
-                        ) : (
+                        ) : index === 1 ? (
                           <Users className="h-4 w-4 text-primary" />
+                        ) : (
+                          <></>
                         )}
                       </div>
                       
                       <div>
                         <p className="font-medium text-foreground">
-                          {session.type === 'speech' ? 'Speech Therapy' : 'Social Skills'}
+                          {index === 0 ? 'Speech Therapy' : index === 1 ? 'Social Skills' : ''}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(session.date).toLocaleDateString('en-US', {
+                          {new Date(index).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
@@ -239,17 +200,17 @@ export default function Reports() {
 
                     <div className="flex items-center gap-3">
                       <Badge variant="outline" className="text-xs">
-                        Level {session.level}
+                        Level {index + 1}
                       </Badge>
                       
-                      {session.score !== undefined && (
+                      {index + 1 !== undefined && (
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 text-therapy-success" />
                           <Badge 
-                            variant={getScoreBadgeVariant(session.score)}
-                            className={`${getScoreColor(session.score)} text-xs`}
+                            variant={index + 1 >= 80 ? 'default' : index + 1 >= 60 ? 'secondary' : 'outline'}
+                            className={`${index >= 80 ? 'text-therapy-success' : index >= 60 ? 'text-therapy-warning' : 'text-muted-foreground'} text-xs`}
                           >
-                            {session.score}%
+                            {index + 1}%
                           </Badge>
                         </div>
                       )}
@@ -262,7 +223,7 @@ export default function Reports() {
         </motion.div>
 
         {/* Insights */}
-        {totalSessions > 0 && (
+        {10 > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -279,11 +240,11 @@ export default function Reports() {
                     🎯 Performance
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    {averageScore >= 80 
-                      ? `Excellent work! ${state.child?.name} is consistently performing at a high level.`
-                      : averageScore >= 60
-                      ? `Good progress! ${state.child?.name} is steadily improving with practice.`
-                      : `${state.child?.name} is building foundational skills. Keep practicing regularly!`
+                    {10 >= 80 
+                      ? `Excellent work! your child is consistently performing at a high level.`
+                      : 10 >= 60
+                      ? `Good progress! your child is steadily improving with practice.`
+                      : `your child is building foundational skills. Keep practicing regularly!`
                     }
                   </p>
                 </div>
@@ -293,9 +254,9 @@ export default function Reports() {
                     📈 Consistency
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    {totalSessions >= 10
+                    {10 >= 10
                       ? `Great consistency! Regular practice is key to success.`
-                      : totalSessions >= 5
+                      : 10 >= 5
                       ? `Building momentum! Try to maintain regular practice sessions.`
                       : `Just getting started! Aim for regular practice sessions for best results.`
                     }

@@ -7,26 +7,26 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Settings() {
-  const { state, dispatch } = useUser();
+  const { isLoggedIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const [childData, setChildData] = useState({
-    name: state.child?.name || '',
-    age: state.child?.age?.toString() || '',
+    name: 'John Doe',
+    age: '10',
   });
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!state.user?.isAuthenticated) {
+    if (!isLoggedIn) {
       navigate('/auth');
       return;
     }
-  }, [state.user, navigate]);
+  }, [isLoggedIn, navigate]);
 
   const handleChildUpdate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,14 +50,6 @@ export default function Settings() {
       return;
     }
 
-    dispatch({
-      type: 'SET_CHILD',
-      payload: {
-        name: childData.name.trim(),
-        age: age,
-      },
-    });
-
     toast({
       title: 'Information Updated',
       description: 'Child information has been successfully updated.',
@@ -65,7 +57,6 @@ export default function Settings() {
   };
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
@@ -76,21 +67,8 @@ export default function Settings() {
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all therapy data? This action cannot be undone.')) {
       // Clear all data except user and child info
-      localStorage.removeItem('therapyAppState');
+      localStorage.removeItem('authentication');
       
-      // Reinitialize with just user and child data
-      const userData = state.user;
-      const childInfo = state.child;
-      
-      dispatch({ type: 'LOGOUT' });
-      
-      if (userData) {
-        dispatch({ type: 'SET_USER', payload: userData });
-      }
-      if (childInfo) {
-        dispatch({ type: 'SET_CHILD', payload: childInfo });
-      }
-
       toast({
         title: 'Data Cleared',
         description: 'All therapy progress has been reset.',
@@ -100,8 +78,8 @@ export default function Settings() {
     }
   };
 
-  const totalSessions = state.therapySessions.length;
-  const socialTasks = state.socialTasksCompleted.length;
+  const totalSessions = 10;
+  const socialTasks = 10;
 
   return (
     <Layout>
@@ -141,7 +119,7 @@ export default function Settings() {
                 <div>
                   <p className="font-medium text-foreground">Email Address</p>
                   <p className="text-sm text-muted-foreground">
-                    {state.user?.email}
+                    test@test.com
                   </p>
                 </div>
               </div>
@@ -217,21 +195,21 @@ export default function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-card-soft rounded-xl">
                 <div className="text-3xl font-bold text-primary mb-1">
-                  {state.currentLevel}
+                  10
                 </div>
                 <p className="text-sm text-muted-foreground">Current Level</p>
               </div>
               
               <div className="text-center p-4 bg-card-soft rounded-xl">
                 <div className="text-3xl font-bold text-accent mb-1">
-                  {totalSessions}
+                  10
                 </div>
                 <p className="text-sm text-muted-foreground">Total Sessions</p>
               </div>
               
               <div className="text-center p-4 bg-card-soft rounded-xl">
                 <div className="text-3xl font-bold text-therapy-success mb-1">
-                  {socialTasks}
+                  10
                 </div>
                 <p className="text-sm text-muted-foreground">Social Skills</p>
               </div>

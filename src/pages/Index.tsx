@@ -1,23 +1,18 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const { state } = useUser();
+  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
-    // Redirect based on user state
-    if (!state.user?.isAuthenticated) {
-      navigate('/auth');
-    } else if (!state.child) {
-      navigate('/child-info');
-    } else if (!state.onboardingCompleted) {
-      navigate('/onboarding');
-    } else {
+    if (isLoggedIn) {
       navigate('/dashboard');
+    } else {
+      navigate('/auth');
     }
-  }, [state, navigate]);
+  }, [isLoggedIn, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

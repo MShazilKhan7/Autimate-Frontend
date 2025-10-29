@@ -7,7 +7,7 @@ export default function Auth() {
 
   const handleAuthSuccess = () => {
     // Navigate to child info collection after successful auth
-    navigate('/child-info');
+    navigate('/');
   };
 
   return (

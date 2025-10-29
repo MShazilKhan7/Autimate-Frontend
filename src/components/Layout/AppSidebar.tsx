@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const menuItems = [
   {
@@ -45,15 +45,9 @@ const menuItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
-  const { dispatch } = useUser();
+  const { signout, authentication } = useAuth();
   
-  const currentPath = location.pathname;
-  const isActive = (path: string) => currentPath === path;
   const isCollapsed = state === 'collapsed';
-
-  const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
-  };
 
   return (
     <Sidebar collapsible="icon">
@@ -117,7 +111,7 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <button
-                      onClick={handleLogout}
+                      onClick={() => signout({ refresh_token: authentication.refreshToken })}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-left transition-all duration-200 text-muted-foreground hover:bg-accent-soft hover:text-foreground"
                     >
                       <LogOut className="h-5 w-5 flex-shrink-0" />

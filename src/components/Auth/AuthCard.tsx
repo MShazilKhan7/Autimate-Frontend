@@ -1,137 +1,80 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { useUser } from '@/context/UserContext';
-import { useToast } from '@/hooks/use-toast';
-import EmailVerification from './EmailVerification';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import EmailVerification from "./EmailVerification";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
-interface AuthCardProps {
-  onAuthSuccess: () => void;
+interface AuthFormData {
+  first_name?: string;
+  last_name?: string;
+  email: string;
+  password: string;
+  confirm_password?: string;
 }
 
-export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
+export default function AuthCard() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    signIn,
+    signUp,
+    isSignInPending,
+    isSignUpPending,
+    showEmailVerification,
+    pendingEmail,
+    setShowEmailVerification,
+    setPendingEmail
+  } = useAuth();
+  const navigate = useNavigate();
+  
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    reset
+  } = useForm<AuthFormData>({ mode: "onTouched" });
 
-  const { dispatch } = useUser();
-  const { toast } = useToast();
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields.',
-        variant: 'destructive',
+  const onSubmit = (data: AuthFormData) => {
+    if (isLogin) {
+      signIn({
+        email: data.email,
+        password: data.password
       });
-      return false;
-    }
-
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Password Mismatch',
-        description: 'Passwords do not match.',
-        variant: 'destructive',
+    } else {
+      signUp({
+        firstName: data.first_name!,
+        lastName: data.last_name!,
+        email: data.email,
+        password: data.password
       });
-      return false;
     }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: 'Weak Password',
-        description: 'Password must be at least 6 characters long.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      if (isLogin) {
-        // Login flow - go directly to success
-        dispatch({
-          type: 'SET_USER',
-          payload: {
-            email: formData.email,
-            isAuthenticated: true,
-          },
-        });
-
-        toast({
-          title: 'Welcome back!',
-          description: 'Redirecting to your dashboard...',
-        });
-
-        setIsLoading(false);
-        onAuthSuccess();
-      } else {
-        // Signup flow - show email verification
-        setPendingEmail(formData.email);
-        setShowEmailVerification(true);
-        setIsLoading(false);
-        
-        toast({
-          title: 'Account Created!',
-          description: 'Please verify your email to continue.',
-        });
-      }
-    }, 1500);
-  };
-
-  const handleEmailVerificationSuccess = () => {
-    dispatch({
-      type: 'SET_USER',
-      payload: {
-        email: pendingEmail,
-        isAuthenticated: true,
-      },
-    });
-    onAuthSuccess();
-  };
-
-  const handleBackToSignup = () => {
-    setShowEmailVerification(false);
-    setPendingEmail('');
   };
 
   if (showEmailVerification) {
     return (
       <EmailVerification
         email={pendingEmail}
-        onVerifySuccess={handleEmailVerificationSuccess}
-        onBack={handleBackToSignup}
+        onVerifySuccess={() => {
+          setShowEmailVerification(false);
+          setPendingEmail("");
+          navigate('/dashboard');
+        }}
+        onBack={() => {
+          setShowEmailVerification(false);
+          navigate('/auth');
+        }}
       />
     );
   }
+
+  const isLoading = isSignInPending || isSignUpPending;
 
   return (
     <motion.div
@@ -153,107 +96,138 @@ export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
           </h1>
           <p className="text-muted-foreground">
             {isLogin
-              ? 'Sign in to continue your journey'
-              : 'Create an account to get started'}
+              ? "Sign in to continue your journey"
+              : "Create an account to get started"}
           </p>
         </motion.div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {!isLogin && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-2"
-            >
-              <Label htmlFor="name" className="text-sm font-medium">
-                Full Name
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="pl-10 py-3 rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  required={!isLogin}
-                />
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    id="first_name"
+                    placeholder="Enter your first name"
+                    {...register("first_name", {
+                      required: !isLogin && "First name is required"
+                    })}
+                    className="pl-10 py-3 rounded-xl"
+                  />
+                </div>
+                {errors.first_name && (
+                  <p className="text-sm text-destructive">
+                    {errors.first_name.message}
+                  </p>
+                )}
               </div>
-            </motion.div>
+
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    id="last_name"
+                    placeholder="Enter your last name"
+                    {...register("last_name", {
+                      required: !isLogin && "Last name is required"
+                    })}
+                    className="pl-10 py-3 rounded-xl"
+                  />
+                </div>
+                {errors.last_name && (
+                  <p className="text-sm text-destructive">
+                    {errors.last_name.message}
+                  </p>
+                )}
+              </div>
+            </>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email Address
-            </Label>
+            <Label htmlFor="email">Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="email"
-                name="email"
                 type="email"
                 placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="pl-10 py-3 rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                required
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Invalid email format"
+                  }
+                })}
+                className="pl-10 py-3 rounded-xl"
               />
             </div>
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">
-              Password
-            </Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="pl-10 pr-10 py-3 rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                required
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters"
+                  }
+                })}
+                className="pl-10 pr-10 py-3 rounded-xl"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
+            {errors.password && (
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           {!isLogin && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-2"
-            >
-              <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm Password
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirm Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  id="confirm_password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="pl-10 py-3 rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  required={!isLogin}
+                  {...register("confirm_password", {
+                    required: "Please confirm your password",
+                    validate: (value) =>
+                      value === watch("password") || "Passwords do not match"
+                  })}
+                  className="pl-10 py-3 rounded-xl"
                 />
               </div>
-            </motion.div>
+              {errors.confirm_password && (
+                <p className="text-sm text-destructive">
+                  {errors.confirm_password.message}
+                </p>
+              )}
+            </div>
           )}
 
           <Button
@@ -264,11 +238,11 @@ export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
             {isLoading ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
               />
             ) : (
-              <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+              <span>{isLogin ? "Sign In" : "Create Account"}</span>
             )}
           </Button>
         </form>
@@ -280,12 +254,16 @@ export default function AuthCard({ onAuthSuccess }: AuthCardProps) {
           className="mt-6 text-center"
         >
           <p className="text-sm text-muted-foreground">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+            {isLogin ? "Don't have an account?" : "Already have an account?"}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              type="button"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                reset();
+              }}
               className="ml-2 text-primary hover:text-primary/80 font-medium transition-colors"
             >
-              {isLogin ? 'Sign up' : 'Sign in'}
+              {isLogin ? "Sign up" : "Sign in"}
             </button>
           </p>
         </motion.div>

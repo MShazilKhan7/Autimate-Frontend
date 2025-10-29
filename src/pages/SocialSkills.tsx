@@ -7,29 +7,25 @@ import TaskCard from '@/components/Social/TaskCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import socialTasks from '@/data/socialTasks.json';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SocialSkills() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [completedToday, setCompletedToday] = useState<string[]>([]);
 
-  const { state, dispatch } = useUser();
+  const { isLoggedIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!state.user?.isAuthenticated) {
+    if (!isLoggedIn) {
       navigate('/auth');
       return;
     }
-    if (!state.onboardingCompleted) {
-      navigate('/dashboard');
-      return;
-    }
-  }, [state.user, state.onboardingCompleted, navigate]);
+  }, [isLoggedIn, navigate]);
 
   // Get unique categories
   const categories = ['all', ...new Set(socialTasks.map(task => task.category))];
@@ -41,8 +37,7 @@ export default function SocialSkills() {
 
   // Check if task is completed (either permanently or today)
   const isTaskCompleted = (taskId: number) => {
-    return state.socialTasksCompleted.includes(taskId.toString()) || 
-           completedToday.includes(taskId.toString());
+    return completedToday.includes(taskId.toString());
   };
 
   const handleTaskComplete = (taskId: number) => {
@@ -52,7 +47,6 @@ export default function SocialSkills() {
       setCompletedToday([...completedToday, taskIdStr]);
       
       // Add to permanent completion list
-      dispatch({ type: 'ADD_SOCIAL_TASK', payload: taskIdStr });
       
       const task = socialTasks.find(t => t.id === taskId);
       
@@ -88,7 +82,7 @@ export default function SocialSkills() {
             Social Skills Practice
           </h1>
           <p className="text-muted-foreground text-lg">
-            Help {state.child?.name} learn important social skills
+            Help your child learn important social skills
           </p>
         </motion.div>
 
@@ -221,7 +215,7 @@ export default function SocialSkills() {
                 Fantastic Work!
               </h3>
               <p className="text-muted-foreground mb-4">
-                {state.child?.name} has practiced all the social skills today!
+                Your child has practiced all the social skills today!
               </p>
               <Button
                 onClick={() => navigate('/dashboard')}

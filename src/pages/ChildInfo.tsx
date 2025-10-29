@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ChildInfo() {
@@ -16,7 +15,6 @@ export default function ChildInfo() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const { dispatch } = useUser();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -51,24 +49,6 @@ export default function ChildInfo() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      dispatch({
-        type: 'SET_CHILD',
-        payload: {
-          name: childData.name.trim(),
-          age: age,
-        },
-      });
-
-      toast({
-        title: 'Information Saved!',
-        description: `Great! Let's learn more about ${childData.name}.`,
-      });
-
-      setIsLoading(false);
-      navigate('/onboarding');
-    }, 1000);
   };
 
   return (

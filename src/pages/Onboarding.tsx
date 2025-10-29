@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuestionCard from '@/components/Onboarding/QuestionCard';
-import { useUser } from '@/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import onboardingQuestions from '@/data/onboardingQuestions.json';
 
@@ -11,21 +10,8 @@ export default function Onboarding() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const { state, dispatch } = useUser();
   const { toast } = useToast();
-  const navigate = useNavigate();
-
-  // Redirect if not authenticated or no child info
-  useEffect(() => {
-    if (!state.user?.isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-    if (!state.child) {
-      navigate('/child-info');
-      return;
-    }
-  }, [state.user, state.child, navigate]);
+  const navigate = useNavigate()
 
   const currentQuestion = onboardingQuestions[currentQuestionIndex];
   const totalQuestions = onboardingQuestions.length;
@@ -36,12 +22,6 @@ export default function Onboarding() {
       [currentQuestion.id]: answer,
     };
     setAnswers(newAnswers);
-
-    // Update context
-    dispatch({
-      type: 'SET_ONBOARDING_ANSWER',
-      payload: { questionId: currentQuestion.id, answer },
-    });
   };
 
   const handleNext = async () => {
@@ -50,11 +30,9 @@ export default function Onboarding() {
       setIsCompleting(true);
       
       setTimeout(() => {
-        dispatch({ type: 'COMPLETE_ONBOARDING' });
-        
         toast({
           title: 'Assessment Complete!',
-          description: `Thank you for providing information about ${state.child?.name}. Let's begin the therapy journey!`,
+          description: `Thank you for providing information about your child. Let's begin the therapy journey!`,
         });
         
         setIsCompleting(false);
@@ -160,7 +138,7 @@ export default function Onboarding() {
           className="text-center mb-8"
         >
           <h1 className="text-therapy-xl text-primary mb-2">
-            Getting to know {state.child?.name}
+            Getting to know your child
           </h1>
           <p className="text-muted-foreground">
             These questions help us create the best therapy experience
