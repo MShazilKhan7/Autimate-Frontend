@@ -1,62 +1,152 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import QuestionCard from '@/components/Onboarding/QuestionCard';
-import { useToast } from '@/hooks/use-toast';
-import onboardingQuestions from '@/data/onboardingQuestions.json';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import QuestionCard from "@/components/Onboarding/QuestionCard";
+import { useToast } from "@/hooks/use-toast";
+import { useQuiz } from "@/hooks/useQuiz";
+import { QuestionWithAnswers } from "@/types/quiz";
+
+interface AnswerData {
+  questionId: string;
+  answerText: string;
+  answerId: string;
+}
 
 export default function Onboarding() {
+  const { questions, isQuestionsLoading, questionsError } = useQuiz();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<AnswerData[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
 
   const { toast } = useToast();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const currentQuestion = onboardingQuestions[currentQuestionIndex];
-  const totalQuestions = onboardingQuestions.length;
+  const currentQuestion: QuestionWithAnswers | undefined =
+    questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
 
-  const handleAnswerSelect = (answer: string) => {
-    const newAnswers = {
-      ...answers,
-      [currentQuestion.id]: answer,
+  useEffect(() => {
+    if (questions.length > 0) {
+      const savedProgress = localStorage.getItem("onboardingProgress");
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress);
+          setAnswers(progress.answers || []);
+
+          if (progress.answers && progress.answers.length > 0) {
+            const lastAnsweredQuestionId =
+              progress.answers[progress.answers.length - 1].questionId;
+            const lastAnsweredIndex = questions.findIndex(
+              (q) => q._id === lastAnsweredQuestionId
+            );
+
+            if (
+              lastAnsweredIndex !== -1 &&
+              lastAnsweredIndex < questions.length - 1
+            ) {
+              setCurrentQuestionIndex(lastAnsweredIndex + 1);
+            } else if (lastAnsweredIndex === questions.length - 1) {
+              setCurrentQuestionIndex(lastAnsweredIndex);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading saved progress:", error);
+          localStorage.removeItem("onboardingProgress");
+        }
+      }
+    }
+  }, [questions.length]);
+
+  const handleAnswerSelect = (answerId: string, answerText: string) => {
+    if (!currentQuestion) return;
+
+    const newAnswer: AnswerData = {
+      questionId: currentQuestion._id,
+      answerText: answerText,
+      answerId: answerId,
     };
-    setAnswers(newAnswers);
+
+    setAnswers((prev) => {
+      const filteredAnswers = prev.filter(
+        (ans) => ans.questionId !== currentQuestion._id
+      );
+      return [...filteredAnswers, newAnswer];
+    });
   };
 
-  const handleNext = async () => {
-    if (currentQuestionIndex === totalQuestions - 1) {
-      // Complete onboarding
-      setIsCompleting(true);
-      
-      setTimeout(() => {
-        toast({
-          title: 'Assessment Complete!',
-          description: `Thank you for providing information about your child. Let's begin the therapy journey!`,
-        });
-        
-        setIsCompleting(false);
-        navigate('/dashboard');
-      }, 2000);
+  const handleNext = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      const progress = {
+        answers,
+        currentQuestionIndex,
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem("onboardingProgress", JSON.stringify(progress));
+      setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      handleComplete();
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
+    if (currentQuestionIndex > 0) setCurrentQuestionIndex((prev) => prev - 1);
   };
 
-  const canGoNext = answers[currentQuestion?.id] !== undefined;
+  const handleComplete = () => {
+    setIsCompleting(true);
+
+    const finalProgress = {
+      answers,
+      completed: true,
+      completedAt: new Date().toISOString(),
+    };
+    localStorage.setItem("onboardingProgress", JSON.stringify(finalProgress));
+
+    setTimeout(() => {
+      toast({
+        title: "Assessment Complete!",
+        description: `Thank you! Let's begin the therapy journey!`,
+      });
+      setIsCompleting(false);
+      navigate("/dashboard");
+    }, 1000);
+  };
+
+  // Check if current question is answered
+  const isCurrentQuestionAnswered = currentQuestion
+    ? answers.some((ans) => ans.questionId === currentQuestion._id)
+    : false;
+
+  const canGoNext = isCurrentQuestionAnswered;
   const canGoPrevious = currentQuestionIndex > 0;
+
+  // Get selected answer for current question
+  const getSelectedAnswerForCurrentQuestion = () => {
+    if (!currentQuestion) return undefined;
+    const answerData = answers.find(
+      (ans) => ans.questionId === currentQuestion._id
+    );
+    return answerData?.answerText;
+  };
+
+  if (isQuestionsLoading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading questions...
+      </div>
+    );
+
+  if (questionsError)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Failed to load questions.
+      </div>
+    );
 
   if (isCompleting) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="absolute inset-0 warm-gradient opacity-50" />
-        
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -64,12 +154,11 @@ export default function Onboarding() {
         >
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="text-8xl mb-6"
           >
             🌈
           </motion.div>
-          
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -78,7 +167,6 @@ export default function Onboarding() {
           >
             Assessment Complete!
           </motion.h1>
-          
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -88,45 +176,15 @@ export default function Onboarding() {
             Preparing your personalized therapy experience...
           </motion.p>
         </motion.div>
-
-        {/* Floating celebration elements */}
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0, y: 100 }}
-            animate={{
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-              y: [100, -100],
-              x: [0, (Math.random() - 0.5) * 200],
-            }}
-            transition={{
-              duration: 3,
-              delay: i * 0.2,
-              repeat: Infinity,
-              repeatDelay: 2,
-            }}
-            className="absolute text-4xl"
-            style={{
-              left: `${20 + i * 10}%`,
-              bottom: 0,
-            }}
-          >
-            {['🎉', '🎈', '⭐', '🌟', '✨', '🎊'][i]}
-          </motion.div>
-        ))}
       </div>
     );
   }
 
-  if (!currentQuestion) {
-    return <div>Loading...</div>;
-  }
+  if (!currentQuestion) return <div>No questions available</div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="absolute inset-0 warm-gradient opacity-50" />
-      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -147,9 +205,8 @@ export default function Onboarding() {
 
         <AnimatePresence mode="wait">
           <QuestionCard
-            key={currentQuestionIndex}
             question={currentQuestion}
-            selectedAnswer={answers[currentQuestion.id]}
+            selectedAnswer={getSelectedAnswerForCurrentQuestion()}
             onAnswerSelect={handleAnswerSelect}
             onNext={handleNext}
             onPrevious={handlePrevious}

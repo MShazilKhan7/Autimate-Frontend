@@ -1,4 +1,4 @@
-import { Authentication, SignInRequest, SignOutRequest, SignUpRequest, User } from '@/types/auth';
+import { Authentication, SignInRequest, SignOutRequest, SignUpRequest, User  } from '@/types/auth';
 import api from '@/utils/api';
 
 export const authAPI = {

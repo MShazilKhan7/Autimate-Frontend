@@ -1,17 +1,12 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-}
+import { QuestionWithAnswers } from '@/types/quiz';
 
 interface QuestionCardProps {
-  question: Question;
+  question: QuestionWithAnswers;
   selectedAnswer?: string;
-  onAnswerSelect: (answer: string) => void;
+  onAnswerSelect: (answerId: string, answerText: string) => void;
   onNext: () => void;
   onPrevious: () => void;
   currentQuestion: number;
@@ -33,6 +28,30 @@ export default function QuestionCard({
 }: QuestionCardProps) {
   const progressPercentage = (currentQuestion / totalQuestions) * 100;
 
+  const handleAnswerClick = (answer: { _id: string; answerText: string }) => {
+    onAnswerSelect(answer._id, answer.answerText);
+  };
+
+  const getAnswerButtonClass = (answerText: string) => {
+    const baseClasses = "w-full p-4 text-left justify-start rounded-xl transition-all duration-200 border-2 ";
+    
+    if (selectedAnswer === answerText) {
+      return baseClasses + "bg-primary-soft border-primary text-primary font-medium shadow-sm scale-[1.02]";
+    }
+    
+    return baseClasses + "bg-card hover:bg-secondary-soft border-border hover:border-primary-soft hover:shadow-md";
+  };
+
+  const getRadioClass = (answerText: string) => {
+    const baseClasses = "w-5 h-5 rounded-full border-2 mr-4 transition-all duration-200 flex items-center justify-center ";
+    
+    if (selectedAnswer === answerText) {
+      return baseClasses + "border-primary bg-primary";
+    }
+    
+    return baseClasses + "border-muted-foreground bg-transparent";
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 50 }}
@@ -41,20 +60,20 @@ export default function QuestionCard({
       transition={{ duration: 0.4 }}
       className="w-full max-w-2xl mx-auto"
     >
-      <Card className="therapy-card p-8">
+      <Card className="therapy-card p-6 md:p-8 shadow-lg border-0">
         {/* Progress Bar */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-3">
             <span className="text-sm font-medium text-muted-foreground">
               Question {currentQuestion} of {totalQuestions}
             </span>
-            <span className="text-sm font-medium text-primary">
-              {Math.round(progressPercentage)}%
+            <span className="text-sm font-medium text-primary bg-primary-soft px-2 py-1 rounded-full">
+              {Math.round(progressPercentage)}% Complete
             </span>
           </div>
-          <div className="w-full bg-secondary-soft rounded-full h-3">
+          <div className="w-full bg-secondary-soft rounded-full h-3 overflow-hidden">
             <motion.div
-              className="h-3 rounded-full therapy-progress"
+              className="h-3 rounded-full bg-gradient-to-r from-primary to-primary-soft"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercentage}%` }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -69,46 +88,59 @@ export default function QuestionCard({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="mb-8"
         >
-          <h2 className="text-therapy-xl text-primary mb-4 leading-relaxed">
-            {question.question}
-          </h2>
+          <div className="flex items-start mb-4">
+            <div className="bg-primary-soft text-primary rounded-lg px-3 py-1 text-sm font-medium mr-3 mt-1">
+              Q{currentQuestion}
+            </div>
+            <h2 className="text-xl md:text-2xl font-semibold text-primary leading-relaxed flex-1">
+              {question.questionText}
+            </h2>
+          </div>
         </motion.div>
 
         {/* Answer Options */}
         <div className="space-y-4 mb-8">
-          {question.options.map((option, index) => (
+          {question.answers.map((answer, index) => (
             <motion.div
-              key={option}
+              key={answer._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
               <Button
-                variant="outline"
-                onClick={() => onAnswerSelect(option)}
-                className={`w-full p-4 text-left justify-start rounded-xl transition-all duration-200 ${
-                  selectedAnswer === option
-                    ? 'bg-primary-soft border-primary text-primary font-medium shadow-sm'
-                    : 'bg-card hover:bg-secondary-soft border-border hover:border-primary-soft'
-                }`}
+                variant="ghost"
+                onClick={() => handleAnswerClick(answer)}
+                className={getAnswerButtonClass(answer.answerText)}
+                disabled={!!selectedAnswer && selectedAnswer !== answer.answerText}
               >
-                <div className="flex items-center">
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 mr-4 transition-all duration-200 ${
-                      selectedAnswer === option
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground'
-                    }`}
-                  >
-                    {selectedAnswer === option && (
+                <div className="flex items-center w-full">
+                  <div className={getRadioClass(answer.answerText)}>
+                    {selectedAnswer === answer.answerText && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-3 h-3 bg-primary-foreground rounded-full m-0.5"
+                        className="w-2 h-2 bg-white rounded-full"
                       />
                     )}
                   </div>
-                  <span className="text-sm">{option}</span>
+                  <span className="text-base font-normal text-left flex-1">
+                    {answer.answerText}
+                  </span>
+                  
+                  {/* Selection indicator */}
+                  {selectedAnswer === answer.answerText && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      className="ml-2 text-primary"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
                 </div>
               </Button>
             </motion.div>
@@ -120,24 +152,72 @@ export default function QuestionCard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
-          className="flex justify-between"
+          className="flex justify-between items-center pt-6 border-t border-border"
         >
           <Button
             variant="outline"
             onClick={onPrevious}
             disabled={!canGoPrevious}
-            className="px-6 py-2 rounded-xl"
+            className="px-6 py-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 active:scale-95"
           >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
             Previous
           </Button>
 
-          <Button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className="px-6 py-2 rounded-xl bg-primary-soft hover:bg-primary text-foreground hover:text-primary-foreground font-medium transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            {currentQuestion === totalQuestions ? 'Complete' : 'Next'}
-          </Button>
+          <div className="flex items-center space-x-4">
+            {selectedAnswer && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full"
+              >
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Answer Selected
+              </motion.div>
+            )}
+            
+            <Button
+              onClick={onNext}
+              disabled={!canGoNext}
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-soft text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {currentQuestion === totalQuestions ? (
+                <>
+                  Complete Assessment
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  Next Question
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Progress Stats */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-6 text-center"
+        >
+          <div className="inline-flex items-center space-x-6 text-sm text-muted-foreground bg-secondary-soft px-4 py-2 rounded-full">
+            <span>Total Questions: <strong>{totalQuestions}</strong></span>
+            <span>•</span>
+            <span>Completed: <strong>{currentQuestion - 1}</strong></span>
+            <span>•</span>
+            <span>Remaining: <strong>{totalQuestions - currentQuestion + 1}</strong></span>
+          </div>
         </motion.div>
       </Card>
     </motion.div>
