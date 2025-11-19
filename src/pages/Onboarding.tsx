@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import QuestionCard from "@/components/Onboarding/QuestionCard";
 import { useToast } from "@/hooks/use-toast";
-import { useQuiz } from "@/hooks/useQuiz";
-import { QuestionWithAnswers } from "@/types/quiz";
+import { useQuiz } from "@/hooks/useOnboarding";
+import { QuestionWithAnswers } from "@/types/onboarding";
 
 interface AnswerData {
   questionId: string;
@@ -13,7 +13,7 @@ interface AnswerData {
 }
 
 export default function Onboarding() {
-  const { questions, isQuestionsLoading, questionsError } = useQuiz();
+  const { questions, isQuestionsLoading, questionsError , submitQuiz } = useQuiz();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerData[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -91,6 +91,14 @@ export default function Onboarding() {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) setCurrentQuestionIndex((prev) => prev - 1);
   };
+  function buildQAJson(pairs: AnswerData[]) {
+    return {
+      answers: pairs.map((p) => ({
+        questionId: p.questionId,
+        answerId: p.answerId,
+      })),
+    };
+  }
 
   const handleComplete = () => {
     setIsCompleting(true);
@@ -102,13 +110,17 @@ export default function Onboarding() {
     };
     localStorage.setItem("onboardingProgress", JSON.stringify(finalProgress));
 
+    const json = buildQAJson(finalProgress.answers);
+    console.log(json);
+    submitQuiz(json)
+
     setTimeout(() => {
       toast({
         title: "Assessment Complete!",
         description: `Thank you! Let's begin the therapy journey!`,
       });
       setIsCompleting(false);
-      navigate("/dashboard");
+      // navigate("/dashboard");
     }, 1000);
   };
 

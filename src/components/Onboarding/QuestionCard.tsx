@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { QuestionWithAnswers } from '@/types/quiz';
+import { QuestionWithAnswers } from '@/types/onboarding';
 
 interface QuestionCardProps {
   question: QuestionWithAnswers;
