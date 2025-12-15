@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout/Layout';
-import SpeechCard from '@/components/Therapy/SpeechCard';
+import SpeechTherapyPanel from '@/components/Therapy/SpeechTherapyPanel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -227,14 +227,12 @@ export default function SpeechTherapy() {
           </motion.div>
 
           <AnimatePresence mode="wait">
-            <SpeechCard
+            <SpeechTherapyPanel
               key={currentQuestionIndex}
               question={currentQuestion}
               onScore={handleScore}
               questionNumber={currentQuestionIndex + 1}
               totalQuestions={totalQuestions}
-              isComplete={isComplete}
-              score={currentScore}
             />
           </AnimatePresence>
         </motion.div>
