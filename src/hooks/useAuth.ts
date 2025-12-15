@@ -36,7 +36,11 @@ export const useAuth = () => {
     onSuccess: (data: Authentication) => {
       if(data.user?.isVerified) {
         setAuthentication({ ...data });
-        navigate('/dashboard');
+        if(data?.user?.isOnboardingFinish){
+          navigate('/dashboard');
+        }else{
+           navigate('/onboarding');
+        }
       } else {
         setPendingEmail(data.user?.email ?? "");
         setShowEmailVerification(true);

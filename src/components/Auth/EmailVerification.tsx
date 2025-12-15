@@ -1,14 +1,19 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, ArrowLeft } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
-import { authAPI } from '@/api/auth';
-import { Authentication } from '@/types/auth';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Mail, ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { authAPI } from "@/api/auth";
+import { Authentication } from "@/types/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface EmailVerificationProps {
   email: string;
@@ -16,11 +21,17 @@ interface EmailVerificationProps {
   onBack: () => void;
 }
 
-export default function EmailVerification({ email, onVerifySuccess, onBack }: EmailVerificationProps) {
+export default function EmailVerification({
+  email,
+  onVerifySuccess,
+  onBack,
+}: EmailVerificationProps) {
   const { setAuthentication } = useAuth();
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const { toast } = useToast();
-  
+
+  const navigate = useNavigate();
+
   const { mutate: verifyEmail, isPending: isVerifyEmailPending } = useMutation<
     Authentication,
     Error,
@@ -28,10 +39,15 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
   >({
     mutationFn: authAPI.verifyEmail,
     onSuccess: (data: Authentication) => {
+      if (data?.user?.isOnboardingFinish) {
+        navigate("/dashboard");
+      } else {
+        navigate("/onboarding");
+      }
       setAuthentication({ ...data });
       toast({
-        title: 'Email Verified!',
-        description: 'Your email has been successfully verified.',
+        title: "Email Verified!",
+        description: "Your email has been successfully verified.",
       });
       onVerifySuccess();
     },
@@ -62,10 +78,13 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
           </p>
         </motion.div>
 
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          verifyEmail({ email, otp });
-        }} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            verifyEmail({ email, otp });
+          }}
+          className="space-y-6"
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -83,29 +102,29 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
                 className="gap-2"
               >
                 <InputOTPGroup>
-                  <InputOTPSlot 
-                    index={0} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={0}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
-                  <InputOTPSlot 
-                    index={1} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={1}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
-                  <InputOTPSlot 
-                    index={2} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={2}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
-                  <InputOTPSlot 
-                    index={3} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={3}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
-                  <InputOTPSlot 
-                    index={4} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={4}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
-                  <InputOTPSlot 
-                    index={5} 
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all" 
+                  <InputOTPSlot
+                    index={5}
+                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
                   />
                 </InputOTPGroup>
               </InputOTP>
@@ -126,7 +145,7 @@ export default function EmailVerification({ email, onVerifySuccess, onBack }: Em
               {isVerifyEmailPending ? (
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
                 />
               ) : (

@@ -20,11 +20,13 @@ export interface SignInRequest {
     email: string;
     is_staff: boolean;
     isVerified: boolean;
+    isOnboardingFinish: boolean
   }
   
   export interface Authentication {
     accessToken: string;
     refreshToken: string;
     user: User | null;
+
   }
   
