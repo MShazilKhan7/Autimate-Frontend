@@ -48,6 +48,7 @@ export default function ChildInfo() {
     }
 
     setIsLoading(true);
+    navigate('/onboarding');
 
   };
 

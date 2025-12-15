@@ -18,7 +18,7 @@ const Index = () => {
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <div className="text-8xl mb-4 animate-pulse-soft">🌈</div>
-        <h1 className="text-therapy-xl text-primary mb-2">Loading TherapyPal...</h1>
+        <h1 className="text-therapy-xl text-primary mb-2">Loading Autimate...</h1>
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ interface AnswerData {
 }
 
 export default function Onboarding() {
-  const { questions, isQuestionsLoading, questionsError, submitQuiz } =
+  const { questions, isQuestionsLoading, questionsError, submitQuiz, isSuccess } =
     useQuiz();
   const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -34,6 +34,8 @@ export default function Onboarding() {
         navigate("/dashboard")
     }
   }, [user]);
+
+  
 
   useEffect(() => {
     if (questions.length > 0) {
@@ -121,17 +123,8 @@ export default function Onboarding() {
     localStorage.setItem("onboardingProgress", JSON.stringify(finalProgress));
 
     const json = buildQAJson(finalProgress.answers);
-    console.log(json);
     submitQuiz(json);
-
-    setTimeout(() => {
-      toast({
-        title: "Assessment Complete!",
-        description: `Thank you! Let's begin the therapy journey!`,
-      });
-      setIsCompleting(false);
-      // navigate("/dashboard");
-    }, 1000);
+    setIsCompleting(false);
   };
 
   // Check if current question is answered

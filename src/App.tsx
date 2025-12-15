@@ -30,12 +30,13 @@ const App = () => (
           {/* 🔐 Protected Routes */}
           <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/child-info" element={<ChildInfo />} />
             <Route path="/therapy" element={<SpeechTherapy />} />
             <Route path="/social" element={<SocialSkills />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
-          </Route>
+          </Route>P
 
 
           <Route path="*" element={<NotFound />} />

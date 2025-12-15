@@ -43,7 +43,7 @@ export default function EmailVerification({
       if (data?.user?.isOnboardingFinish) {
         navigate("/dashboard");
       } else {
-        navigate("/onboarding");
+        navigate("/child-info");
       }
       setAuthentication({ ...data });
       toast({

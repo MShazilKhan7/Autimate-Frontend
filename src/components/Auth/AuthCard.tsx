@@ -91,7 +91,7 @@ export default function AuthCard() {
         >
           <div className="text-6xl mb-4">🌈</div>
           <h1 className="text-therapy-xl text-primary mb-2">
-            Welcome to TherapyPal
+            Welcome to Autimate
           </h1>
           <p className="text-muted-foreground">
             {isLogin
