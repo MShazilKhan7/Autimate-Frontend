@@ -5,6 +5,7 @@ import QuestionCard from "@/components/Onboarding/QuestionCard";
 import { useToast } from "@/hooks/use-toast";
 import { useQuiz } from "@/hooks/useOnboarding";
 import { QuestionWithAnswers } from "@/types/onboarding";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AnswerData {
   questionId: string;
@@ -13,7 +14,9 @@ interface AnswerData {
 }
 
 export default function Onboarding() {
-  const { questions, isQuestionsLoading, questionsError , submitQuiz } = useQuiz();
+  const { questions, isQuestionsLoading, questionsError, submitQuiz } =
+    useQuiz();
+  const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerData[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -24,6 +27,13 @@ export default function Onboarding() {
   const currentQuestion: QuestionWithAnswers | undefined =
     questions[currentQuestionIndex];
   const totalQuestions = questions.length;
+
+  useEffect(() => {
+    console.log(user)
+    if (user?.user?.isOnboardingFinish) {
+        navigate("/dashboard")
+    }
+  }, [user]);
 
   useEffect(() => {
     if (questions.length > 0) {
@@ -91,13 +101,13 @@ export default function Onboarding() {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) setCurrentQuestionIndex((prev) => prev - 1);
   };
-  function buildQAJson(pairs: AnswerData[]) {
-    return {
-      answers: pairs.map((p) => ({
-        questionId: p.questionId,
-        answerId: p.answerId,
-      })),
-    };
+  function buildQAJson(
+    pairs: AnswerData[]
+  ): { questionId: string; answerId: string }[] {
+    return pairs.map((p) => ({
+      questionId: p.questionId,
+      answerId: p.answerId,
+    }));
   }
 
   const handleComplete = () => {
@@ -112,7 +122,7 @@ export default function Onboarding() {
 
     const json = buildQAJson(finalProgress.answers);
     console.log(json);
-    submitQuiz(json)
+    submitQuiz(json);
 
     setTimeout(() => {
       toast({

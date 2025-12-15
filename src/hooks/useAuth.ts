@@ -78,7 +78,8 @@ export const useAuth = () => {
     setAuthentication,
     user: user ?? null,
     isUserLoading: isUserLoading,
-    isLoggedIn: !!authentication.accessToken,
+    isLoggedIn: !!authentication?.accessToken,
+    isOnBoarded : user?.isOnboardingFinish,
 
     showEmailVerification,
     setShowEmailVerification,

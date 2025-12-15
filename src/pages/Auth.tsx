@@ -20,7 +20,7 @@ export default function Auth() {
         transition={{ duration: 0.6 }}
         className="relative z-10 w-full max-w-md"
       >
-        <AuthCard onAuthSuccess={handleAuthSuccess} />
+        <AuthCard  />
       </motion.div>
 
       {/* Floating elements for visual appeal */}

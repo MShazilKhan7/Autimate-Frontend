@@ -13,30 +13,35 @@ import SocialSkills from "./pages/SocialSkills";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import AuthLayout from "./components/Layout/AuthLayout";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            {/* <Route path="/child-info" element={<ChildInfo />} /> */}
-            <Route path="/onboarding" element={<Onboarding />} />
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+
+          {/* 🔐 Protected Routes */}
+          <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/therapy" element={<SpeechTherapy />} />
             <Route path="/social" element={<SocialSkills />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+            <Route path="/onboarding" element={<Onboarding />} />
+          </Route>
+
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

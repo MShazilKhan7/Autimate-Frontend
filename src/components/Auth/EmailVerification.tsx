@@ -39,6 +39,7 @@ export default function EmailVerification({
   >({
     mutationFn: authAPI.verifyEmail,
     onSuccess: (data: Authentication) => {
+      console.log(data?.user?.isOnboardingFinish)
       if (data?.user?.isOnboardingFinish) {
         navigate("/dashboard");
       } else {

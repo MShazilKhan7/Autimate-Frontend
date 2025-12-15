@@ -64,7 +64,6 @@ export default function AuthCard() {
         onVerifySuccess={() => {
           setShowEmailVerification(false);
           setPendingEmail("");
-          navigate('/dashboard');
         }}
         onBack={() => {
           setShowEmailVerification(false);

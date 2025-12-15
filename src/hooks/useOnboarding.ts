@@ -12,7 +12,7 @@ export const useQuiz = () => {
     refetchOnWindowFocus: false,
   });
 
-  const questions = data?.data ?? [];
+  const questions = data ?? [];
 
   // Save quiz responses
   const {
