@@ -9,6 +9,7 @@ import ChildInfo from "./pages/ChildInfo";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import SpeechTherapy from "./pages/SpeechTherapy";
+import SpeechSpace from "./pages/SpeechSpace";
 import SocialSkills from "./pages/SocialSkills";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/child-info" element={<ChildInfo />} />
             <Route path="/therapy" element={<SpeechTherapy />} />
+            <Route path="/speech-space" element={<SpeechSpace />} />
             <Route path="/social" element={<SocialSkills />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
