@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import SpeechTherapy from "./pages/SpeechTherapy";
 import SpeechSpace from "./pages/SpeechSpace";
 import SocialSkills from "./pages/SocialSkills";
+import SocialSkillsPractice from "./pages/SocialSkillsPractice";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -35,11 +36,11 @@ const App = () => (
             <Route path="/therapy" element={<SpeechTherapy />} />
             <Route path="/speech-space" element={<SpeechSpace />} />
             <Route path="/social" element={<SocialSkills />} />
+            <Route path="/social/practice/:taskId" element={<SocialSkillsPractice />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
-          </Route>P
-
+          </Route>
 
           <Route path="*" element={<NotFound />} />
         </Routes>
