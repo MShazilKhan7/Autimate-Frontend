@@ -144,9 +144,11 @@ export default function SocialSkillsPractice() {
                 transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
                 className="text-center mb-6"
               >
-                <div className="text-[140px] sm:text-[180px] leading-none drop-shadow-lg mb-4">
-                  {task.image}
-                </div>
+                <img 
+                  src={task.image} 
+                  alt={task.task} 
+                  className="w-44 h-44 sm:w-52 sm:h-52 object-cover rounded-3xl shadow-xl mx-auto mb-4"
+                />
                 
                 <motion.h2
                   initial={{ y: 20, opacity: 0 }}

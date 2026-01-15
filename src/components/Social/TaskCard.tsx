@@ -50,9 +50,11 @@ export default function TaskCard({ task, isCompleted }: TaskCardProps) {
             </motion.div>
           )}
           
-          <div className="text-6xl mb-4">
-            {task.image}
-          </div>
+          <img 
+            src={task.image} 
+            alt={task.task} 
+            className="w-24 h-24 object-cover rounded-2xl shadow-md mb-4"
+          />
           
           <h3 className="text-therapy-lg text-primary font-semibold mb-2">
             {task.task}
