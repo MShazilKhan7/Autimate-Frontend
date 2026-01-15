@@ -1,4 +1,4 @@
-import { Home, Mic, Users, FileText, Settings, LogOut } from 'lucide-react';
+import { Home, Mic, Rocket, Users, FileText, Settings, LogOut } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -24,6 +24,11 @@ const menuItems = [
     title: 'Speech Therapy',
     url: '/therapy',
     icon: Mic,
+  },
+  {
+    title: 'Speech Space',
+    url: '/speech-space',
+    icon: Rocket,
   },
   {
     title: 'Social Skills',
