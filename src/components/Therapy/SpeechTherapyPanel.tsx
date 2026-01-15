@@ -141,6 +141,21 @@ export default function SpeechTherapyPanel({
                 )}
               </Button>
             </div>
+
+            {/* Big Image Display */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+              className="flex flex-col items-center justify-center mb-4"
+            >
+              <div className="text-[120px] leading-none drop-shadow-lg">
+                {question.image}
+              </div>
+              <p className="text-sm text-muted-foreground capitalize mt-2">
+                {question.category}
+              </p>
+            </motion.div>
             
             <div className="flex-1 flex items-center justify-center">
               <SpeakingCharacter
@@ -158,12 +173,27 @@ export default function SpeechTherapyPanel({
             transition={{ delay: 0.3 }}
             className="bg-gradient-to-br from-primary-soft/30 to-therapy-success/20 rounded-2xl p-6"
           >
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-foreground text-center">
+            <div className="mb-6 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 Your Turn!
               </h3>
+              {/* Big Image for Child Panel */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
+                className="text-[100px] leading-none mb-2"
+              >
+                {question.image}
+              </motion.div>
+              <h2 className="text-3xl font-bold text-primary mb-1">
+                {question.word}
+              </h2>
+              <p className="text-sm text-muted-foreground capitalize">
+                {question.category}
+              </p>
             </div>
-            
+
             <ChildRecordingPanel
               word={question.word}
               category={question.category}
