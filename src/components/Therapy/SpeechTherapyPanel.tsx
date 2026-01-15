@@ -77,7 +77,7 @@ export default function SpeechTherapyPanel({
       <div className="mb-6 px-4">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{question.image}</span>
+            <img src={question.image} alt={question.word} className="w-8 h-8 object-cover rounded-lg" />
             <span className="text-sm font-medium text-muted-foreground">
               Word {questionNumber} of {totalQuestions}
             </span>
@@ -149,9 +149,11 @@ export default function SpeechTherapyPanel({
               transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
               className="flex flex-col items-center justify-center mb-4"
             >
-              <div className="text-[120px] leading-none drop-shadow-lg">
-                {question.image}
-              </div>
+              <img 
+                src={question.image} 
+                alt={question.word} 
+                className="w-40 h-40 object-cover rounded-3xl shadow-xl"
+              />
               <p className="text-sm text-muted-foreground capitalize mt-2">
                 {question.category}
               </p>
@@ -182,9 +184,13 @@ export default function SpeechTherapyPanel({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
-                className="text-[100px] leading-none mb-2"
+                className="mb-2"
               >
-                {question.image}
+                <img 
+                  src={question.image} 
+                  alt={question.word} 
+                  className="w-32 h-32 object-cover rounded-2xl shadow-lg mx-auto"
+                />
               </motion.div>
               <h2 className="text-3xl font-bold text-primary mb-1">
                 {question.word}

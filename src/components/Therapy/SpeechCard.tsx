@@ -65,9 +65,11 @@ export default function SpeechCard({
           transition={{ duration: 0.4, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="text-8xl mb-4">
-            {question.image}
-          </div>
+          <img 
+            src={question.image} 
+            alt={question.word} 
+            className="w-40 h-40 object-cover rounded-3xl shadow-xl mx-auto mb-4"
+          />
           
           <h2 className="text-4xl font-bold text-primary mb-2">
             {question.word}

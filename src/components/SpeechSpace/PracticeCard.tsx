@@ -8,7 +8,7 @@ interface PracticeItem {
   text: string;
   type: 'letter' | 'word' | 'sentence';
   hint: string;
-  emoji?: string;
+  image?: string;
 }
 
 interface PracticeCardProps {
@@ -62,13 +62,17 @@ export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying }: Pract
     >
       {/* Item display */}
       <div className="text-center mb-6">
-        {item.emoji && (
+        {item.image && (
           <motion.div
-            className="text-6xl mb-4"
-            animate={{ scale: [1, 1.1, 1] }}
+            className="mb-4"
+            animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {item.emoji}
+            <img 
+              src={item.image} 
+              alt={item.text} 
+              className="w-32 h-32 object-cover rounded-2xl shadow-lg mx-auto"
+            />
           </motion.div>
         )}
         

@@ -7,11 +7,11 @@
       "icon": "🌟",
       "unlocked": true,
       "items": [
-        { "id": "l1-1", "text": "Cat", "type": "word", "hint": "A fluffy pet that says meow!", "emoji": "🐱" },
-        { "id": "l1-2", "text": "Dog", "type": "word", "hint": "A happy pet that barks!", "emoji": "🐕" },
-        { "id": "l1-3", "text": "Ball", "type": "word", "hint": "Round and bouncy!", "emoji": "⚽" },
-        { "id": "l1-4", "text": "Sun", "type": "word", "hint": "Bright and warm in the sky!", "emoji": "☀️" },
-        { "id": "l1-5", "text": "Cup", "type": "word", "hint": "You drink from it!", "emoji": "🥤" }
+        { "id": "l1-1", "text": "Cat", "type": "word", "hint": "A fluffy pet that says meow!", "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&h=300&fit=crop" },
+        { "id": "l1-2", "text": "Dog", "type": "word", "hint": "A happy pet that barks!", "image": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop" },
+        { "id": "l1-3", "text": "Ball", "type": "word", "hint": "Round and bouncy!", "image": "https://images.unsplash.com/photo-1553481187-be93c21490a9?w=300&h=300&fit=crop" },
+        { "id": "l1-4", "text": "Sun", "type": "word", "hint": "Bright and warm in the sky!", "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop" },
+        { "id": "l1-5", "text": "Cup", "type": "word", "hint": "You drink from it!", "image": "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=300&h=300&fit=crop" }
       ],
       "starsRequired": 0
     },
@@ -22,11 +22,11 @@
       "icon": "🐾",
       "unlocked": false,
       "items": [
-        { "id": "l2-1", "text": "Fish", "type": "word", "hint": "Swims in the water!", "emoji": "🐟" },
-        { "id": "l2-2", "text": "Bird", "type": "word", "hint": "Flies in the sky!", "emoji": "🐦" },
-        { "id": "l2-3", "text": "Duck", "type": "word", "hint": "Says quack quack!", "emoji": "🦆" },
-        { "id": "l2-4", "text": "Frog", "type": "word", "hint": "Jumps and says ribbit!", "emoji": "🐸" },
-        { "id": "l2-5", "text": "Bear", "type": "word", "hint": "Big and fluffy!", "emoji": "🐻" }
+        { "id": "l2-1", "text": "Fish", "type": "word", "hint": "Swims in the water!", "image": "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300&h=300&fit=crop" },
+        { "id": "l2-2", "text": "Bird", "type": "word", "hint": "Flies in the sky!", "image": "https://images.unsplash.com/photo-1444464666168-49d633b86797?w=300&h=300&fit=crop" },
+        { "id": "l2-3", "text": "Duck", "type": "word", "hint": "Says quack quack!", "image": "https://images.unsplash.com/photo-1459682687441-7761439a709d?w=300&h=300&fit=crop" },
+        { "id": "l2-4", "text": "Frog", "type": "word", "hint": "Jumps and says ribbit!", "image": "https://images.unsplash.com/photo-1550853024-fae8cd4be47f?w=300&h=300&fit=crop" },
+        { "id": "l2-5", "text": "Bear", "type": "word", "hint": "Big and fluffy!", "image": "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=300&h=300&fit=crop" }
       ],
       "starsRequired": 10
     },
@@ -37,11 +37,11 @@
       "icon": "🍎",
       "unlocked": false,
       "items": [
-        { "id": "l3-1", "text": "Apple", "type": "word", "hint": "Red and crunchy fruit!", "emoji": "🍎" },
-        { "id": "l3-2", "text": "Banana", "type": "word", "hint": "Yellow and sweet!", "emoji": "🍌" },
-        { "id": "l3-3", "text": "Cake", "type": "word", "hint": "Sweet birthday treat!", "emoji": "🎂" },
-        { "id": "l3-4", "text": "Pizza", "type": "word", "hint": "Cheesy and yummy!", "emoji": "🍕" },
-        { "id": "l3-5", "text": "Cookie", "type": "word", "hint": "Sweet and crunchy!", "emoji": "🍪" }
+        { "id": "l3-1", "text": "Apple", "type": "word", "hint": "Red and crunchy fruit!", "image": "https://images.unsplash.com/photo-1568702846914-96b305d2uj67?w=300&h=300&fit=crop" },
+        { "id": "l3-2", "text": "Banana", "type": "word", "hint": "Yellow and sweet!", "image": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300&h=300&fit=crop" },
+        { "id": "l3-3", "text": "Cake", "type": "word", "hint": "Sweet birthday treat!", "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&h=300&fit=crop" },
+        { "id": "l3-4", "text": "Pizza", "type": "word", "hint": "Cheesy and yummy!", "image": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300&h=300&fit=crop" },
+        { "id": "l3-5", "text": "Cookie", "type": "word", "hint": "Sweet and crunchy!", "image": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&h=300&fit=crop" }
       ],
       "starsRequired": 25
     },
@@ -52,11 +52,11 @@
       "icon": "🏠",
       "unlocked": false,
       "items": [
-        { "id": "l4-1", "text": "Chair", "type": "word", "hint": "You sit on it!", "emoji": "🪑" },
-        { "id": "l4-2", "text": "Book", "type": "word", "hint": "Read stories from it!", "emoji": "📚" },
-        { "id": "l4-3", "text": "Bed", "type": "word", "hint": "You sleep here!", "emoji": "🛏️" },
-        { "id": "l4-4", "text": "Door", "type": "word", "hint": "Open and close it!", "emoji": "🚪" },
-        { "id": "l4-5", "text": "Window", "type": "word", "hint": "Look outside!", "emoji": "🪟" }
+        { "id": "l4-1", "text": "Chair", "type": "word", "hint": "You sit on it!", "image": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=300&h=300&fit=crop" },
+        { "id": "l4-2", "text": "Book", "type": "word", "hint": "Read stories from it!", "image": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=300&fit=crop" },
+        { "id": "l4-3", "text": "Bed", "type": "word", "hint": "You sleep here!", "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=300&h=300&fit=crop" },
+        { "id": "l4-4", "text": "Door", "type": "word", "hint": "Open and close it!", "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop" },
+        { "id": "l4-5", "text": "Window", "type": "word", "hint": "Look outside!", "image": "https://images.unsplash.com/photo-1509644851169-2acc08aa25b5?w=300&h=300&fit=crop" }
       ],
       "starsRequired": 45
     }

@@ -2,7 +2,7 @@
   {
     "id": 1,
     "task": "Say Hello",
-    "image": "👋",
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop",
     "description": "Practice greeting people with a friendly hello and wave",
     "instruction": "Wave your hand and say 'Hello!' with a smile",
     "category": "greetings"
@@ -10,7 +10,7 @@
   {
     "id": 2,
     "task": "Thank You",
-    "image": "🙏",
+    "image": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=300&h=300&fit=crop",
     "description": "Learn to express gratitude when someone helps you",
     "instruction": "Say 'Thank you!' when someone does something nice for you",
     "category": "manners"
@@ -18,7 +18,7 @@
   {
     "id": 3,
     "task": "I'm Hungry",
-    "image": "🍽️",
+    "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&h=300&fit=crop",
     "description": "Express when you need food or want to eat",
     "instruction": "Touch your tummy and say 'I'm hungry' when you want food",
     "category": "needs"
@@ -26,7 +26,7 @@
   {
     "id": 4,
     "task": "Need Help",
-    "image": "🤝",
+    "image": "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=300&h=300&fit=crop",
     "description": "Ask for assistance when you need support",
     "instruction": "Raise your hand and say 'I need help please'",
     "category": "communication"
@@ -34,7 +34,7 @@
   {
     "id": 5,
     "task": "Go Potty",
-    "image": "🚽",
+    "image": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&h=300&fit=crop",
     "description": "Communicate when you need to use the bathroom",
     "instruction": "Say 'I need to go potty' or point to the bathroom",
     "category": "needs"
@@ -42,7 +42,7 @@
   {
     "id": 6,
     "task": "Share Toys",
-    "image": "🧸",
+    "image": "https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=300&h=300&fit=crop",
     "description": "Practice sharing and taking turns with toys",
     "instruction": "Offer a toy to someone and say 'Would you like to play?'",
     "category": "social"
@@ -50,7 +50,7 @@
   {
     "id": 7,
     "task": "I'm Tired",
-    "image": "😴",
+    "image": "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=300&h=300&fit=crop",
     "description": "Express when you feel sleepy or need rest",
     "instruction": "Yawn and say 'I'm tired' when you need to rest",
     "category": "feelings"
@@ -58,7 +58,7 @@
   {
     "id": 8,
     "task": "More Please",
-    "image": "➕",
+    "image": "https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=300&h=300&fit=crop",
     "description": "Ask for more of something you enjoy",
     "instruction": "Hold out your hands and say 'More please'",
     "category": "requests"
@@ -66,7 +66,7 @@
   {
     "id": 9,
     "task": "All Done",
-    "image": "✅",
+    "image": "https://images.unsplash.com/photo-1516534775068-ba3e7458af70?w=300&h=300&fit=crop",
     "description": "Communicate when you're finished with an activity",
     "instruction": "Pat your hands together and say 'All done!'",
     "category": "communication"
@@ -74,7 +74,7 @@
   {
     "id": 10,
     "task": "I Love You",
-    "image": "❤️",
+    "image": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=300&h=300&fit=crop",
     "description": "Express love and affection to family members",
     "instruction": "Give a hug and say 'I love you' to show affection",
     "category": "emotions"
