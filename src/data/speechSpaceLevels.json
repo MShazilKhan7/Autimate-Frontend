@@ -2,61 +2,61 @@
   "levels": [
     {
       "id": 1,
-      "name": "Letter Land",
-      "description": "Learn to say letters!",
-      "icon": "🔤",
+      "name": "Easy Words",
+      "description": "Simple everyday words!",
+      "icon": "🌟",
       "unlocked": true,
       "items": [
-        { "id": "l1-1", "text": "A", "type": "letter", "hint": "Open wide like a yawn!" },
-        { "id": "l1-2", "text": "B", "type": "letter", "hint": "Press your lips together!" },
-        { "id": "l1-3", "text": "M", "type": "letter", "hint": "Hum like a bee!" },
-        { "id": "l1-4", "text": "S", "type": "letter", "hint": "Like a snake hissing!" },
-        { "id": "l1-5", "text": "O", "type": "letter", "hint": "Make your mouth round!" }
+        { "id": "l1-1", "text": "Cat", "type": "word", "hint": "A fluffy pet that says meow!", "emoji": "🐱" },
+        { "id": "l1-2", "text": "Dog", "type": "word", "hint": "A happy pet that barks!", "emoji": "🐕" },
+        { "id": "l1-3", "text": "Ball", "type": "word", "hint": "Round and bouncy!", "emoji": "⚽" },
+        { "id": "l1-4", "text": "Sun", "type": "word", "hint": "Bright and warm in the sky!", "emoji": "☀️" },
+        { "id": "l1-5", "text": "Cup", "type": "word", "hint": "You drink from it!", "emoji": "🥤" }
       ],
       "starsRequired": 0
     },
     {
       "id": 2,
-      "name": "Word World",
-      "description": "Say simple words!",
-      "icon": "📚",
+      "name": "Animal Friends",
+      "description": "Learn animal names!",
+      "icon": "🐾",
       "unlocked": false,
       "items": [
-        { "id": "l2-1", "text": "Cat", "type": "word", "hint": "A fluffy pet that says meow!", "emoji": "🐱" },
-        { "id": "l2-2", "text": "Dog", "type": "word", "hint": "A happy pet that barks!", "emoji": "🐕" },
-        { "id": "l2-3", "text": "Sun", "type": "word", "hint": "Bright and warm in the sky!", "emoji": "☀️" },
-        { "id": "l2-4", "text": "Ball", "type": "word", "hint": "Round and bouncy!", "emoji": "⚽" },
-        { "id": "l2-5", "text": "Fish", "type": "word", "hint": "Swims in the water!", "emoji": "🐟" }
+        { "id": "l2-1", "text": "Fish", "type": "word", "hint": "Swims in the water!", "emoji": "🐟" },
+        { "id": "l2-2", "text": "Bird", "type": "word", "hint": "Flies in the sky!", "emoji": "🐦" },
+        { "id": "l2-3", "text": "Duck", "type": "word", "hint": "Says quack quack!", "emoji": "🦆" },
+        { "id": "l2-4", "text": "Frog", "type": "word", "hint": "Jumps and says ribbit!", "emoji": "🐸" },
+        { "id": "l2-5", "text": "Bear", "type": "word", "hint": "Big and fluffy!", "emoji": "🐻" }
       ],
       "starsRequired": 10
     },
     {
       "id": 3,
-      "name": "Sentence Station",
-      "description": "Try short sentences!",
-      "icon": "💬",
+      "name": "Yummy Food",
+      "description": "Delicious food words!",
+      "icon": "🍎",
       "unlocked": false,
       "items": [
-        { "id": "l3-1", "text": "I am happy", "type": "sentence", "hint": "Say how you feel!", "emoji": "😊" },
-        { "id": "l3-2", "text": "I see a cat", "type": "sentence", "hint": "Look at the kitty!", "emoji": "🐱" },
-        { "id": "l3-3", "text": "The sun is big", "type": "sentence", "hint": "Describe the sun!", "emoji": "☀️" },
-        { "id": "l3-4", "text": "I like to play", "type": "sentence", "hint": "Playing is fun!", "emoji": "🎮" },
-        { "id": "l3-5", "text": "Hello my friend", "type": "sentence", "hint": "Greet someone!", "emoji": "👋" }
+        { "id": "l3-1", "text": "Apple", "type": "word", "hint": "Red and crunchy fruit!", "emoji": "🍎" },
+        { "id": "l3-2", "text": "Banana", "type": "word", "hint": "Yellow and sweet!", "emoji": "🍌" },
+        { "id": "l3-3", "text": "Cake", "type": "word", "hint": "Sweet birthday treat!", "emoji": "🎂" },
+        { "id": "l3-4", "text": "Pizza", "type": "word", "hint": "Cheesy and yummy!", "emoji": "🍕" },
+        { "id": "l3-5", "text": "Cookie", "type": "word", "hint": "Sweet and crunchy!", "emoji": "🍪" }
       ],
       "starsRequired": 25
     },
     {
       "id": 4,
-      "name": "Story Stars",
-      "description": "Longer sentences!",
-      "icon": "⭐",
+      "name": "Around Home",
+      "description": "Things at home!",
+      "icon": "🏠",
       "unlocked": false,
       "items": [
-        { "id": "l4-1", "text": "The cat is sleeping", "type": "sentence", "hint": "Shh, kitty is tired!", "emoji": "😴" },
-        { "id": "l4-2", "text": "I love my family", "type": "sentence", "hint": "Family is special!", "emoji": "❤️" },
-        { "id": "l4-3", "text": "The bird can fly high", "type": "sentence", "hint": "Up in the sky!", "emoji": "🐦" },
-        { "id": "l4-4", "text": "We play in the park", "type": "sentence", "hint": "Outside fun!", "emoji": "🏞️" },
-        { "id": "l4-5", "text": "I brush my teeth", "type": "sentence", "hint": "Clean and healthy!", "emoji": "🪥" }
+        { "id": "l4-1", "text": "Chair", "type": "word", "hint": "You sit on it!", "emoji": "🪑" },
+        { "id": "l4-2", "text": "Book", "type": "word", "hint": "Read stories from it!", "emoji": "📚" },
+        { "id": "l4-3", "text": "Bed", "type": "word", "hint": "You sleep here!", "emoji": "🛏️" },
+        { "id": "l4-4", "text": "Door", "type": "word", "hint": "Open and close it!", "emoji": "🚪" },
+        { "id": "l4-5", "text": "Window", "type": "word", "hint": "Look outside!", "emoji": "🪟" }
       ],
       "starsRequired": 45
     }
