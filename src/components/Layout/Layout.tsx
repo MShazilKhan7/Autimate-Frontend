@@ -1,12 +1,25 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const { user, isUserLoading } = useAuth();
+  const name = user ? `${user?.firstName} ${user?.lastName}` : '';
+
+  if (isUserLoading) {
+    return <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <div className="text-8xl mb-4 animate-pulse-soft">🌈</div>
+        <h1 className="text-therapy-xl text-primary mb-2">Loading Autimate...</h1>
+      </div>
+    </div>
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -21,7 +34,7 @@ export default function Layout({ children }: LayoutProps) {
               animate={{ opacity: 1, y: 0 }}
               className="text-therapy-lg text-primary font-semibold"
             >
-              Autism Speech Therapy & Social Skills
+              {name}
             </motion.div>
           </header>
           
