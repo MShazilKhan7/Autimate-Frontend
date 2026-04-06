@@ -19,7 +19,7 @@ export const useAuth = () => {
     queryClient.clear();
   };
 
-  const { data: user, isLoading: isUserLoading } = useQuery({
+  const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ['me'],
     queryFn: authAPI.activeUser,
     enabled: !!authentication.accessToken,
@@ -36,14 +36,10 @@ export const useAuth = () => {
     onSuccess: (data: Authentication) => {
       if(data.user?.isVerified) {
         setAuthentication({ ...data });
-        if(data?.user?.isOnboardingFinish){
-          navigate('/dashboard');
-        }else{
-           navigate('/onboarding');
-        }
+        data?.user?.isOnboardingFinish ? navigate('/dashboard') : navigate('/onboarding');
       } else {
         setPendingEmail(data.user?.email ?? "");
-        setShowEmailVerification(true);
+        setShowEmailVerification(true);navigate('/onboarding');
       }
     },
   });
@@ -76,10 +72,10 @@ export const useAuth = () => {
   return {
     authentication,
     setAuthentication,
-    user: user ?? null,
+    user: userData?.user ?? null,
     isUserLoading: isUserLoading,
     isLoggedIn: !!authentication?.accessToken,
-    isOnBoarded : user?.isOnboardingFinish,
+    isOnBoarded : userData?.user?.isOnboardingFinish,
 
     showEmailVerification,
     setShowEmailVerification,

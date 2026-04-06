@@ -16,6 +16,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AuthLayout from "./components/Layout/AuthLayout";
+import Onboarding2 from "./pages/Onboarding2";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +40,7 @@ const App = () => (
             <Route path="/social/practice/:taskId" element={<SocialSkillsPractice />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/onboarding" element={<Onboarding2 />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

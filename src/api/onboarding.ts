@@ -1,5 +1,13 @@
 import api from "@/utils/api";
-import { QuestionWithAnswers } from "@/types/onboarding";
+import { AssessmentProfile, QuestionWithAnswers } from "@/types/onboarding";
+
+export interface SubmitOnboardingRequest {
+  name: string;
+  age: string;
+  diagnosis: string;
+  gender: 0 | 1;
+  profile: AssessmentProfile;
+}
 
 export const onboardingAPI = {
   getAllQuestions: async (): Promise<QuestionWithAnswers[]> =>
@@ -9,4 +17,9 @@ export const onboardingAPI = {
       console.log("Save API Response:", answers);
       return res.data;
     }),
-};
+    submitOnboarding: async (data: SubmitOnboardingRequest) =>
+    api.post("/api/on-boarding/submit", data).then((res) => {
+      console.log("Submit API Response:", data);
+      return res.data;
+    }),
+};  
