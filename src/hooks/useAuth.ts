@@ -76,6 +76,7 @@ export const useAuth = () => {
     isUserLoading: isUserLoading,
     isLoggedIn: !!authentication?.accessToken,
     isOnBoarded : userData?.user?.isOnboardingFinish,
+    // childInfo: userData?.user.childInfo,
 
     showEmailVerification,
     setShowEmailVerification,

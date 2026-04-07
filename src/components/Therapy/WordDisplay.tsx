@@ -6,7 +6,7 @@ interface WordDisplayProps {
   category: string;
   phonemes: string[];
   score?: number;
-  isCorrect?: boolean;
+  isCorrect?: string;
 }
 
 export default function WordDisplay({ word, image, category, phonemes, score, isCorrect }: WordDisplayProps) {

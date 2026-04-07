@@ -4,7 +4,7 @@ import type { PhonemeScore } from '@/data/speechTherapyWords';
 interface PhonemeBreakdownProps {
   phonemes: PhonemeScore[];
   wordScore: number;
-  isCorrect: boolean;
+  isCorrect: string;
 }
 
 function getScoreColor(score: number): string {
@@ -50,17 +50,17 @@ export default function PhonemeBreakdown({ phonemes, wordScore, isCorrect }: Pho
       {/* Phoneme Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {phonemes.map((phoneme, index) => {
-          const feedback = getFeedbackText(phoneme.annotation.score, phoneme.phone);
+          const feedback = getFeedbackText(phoneme.quality_score, phoneme.phone);
           return (
             <motion.div
               key={`${phoneme.phone}-${index}`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 + index * 0.1, type: 'spring', stiffness: 300 }}
-              className={`relative rounded-xl border-2 p-4 text-center ${getScoreColor(phoneme.annotation.score)}`}
+              className={`relative rounded-xl border-2 p-4 text-center ${getScoreColor(phoneme.quality_score)}`}
             >
               {/* Score Dot */}
-              <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${getScoreDotColor(phoneme.annotation.score)}`} />
+              <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${getScoreDotColor(phoneme.quality_score)}`} />
 
               {/* Phoneme Label */}
               <p className="text-2xl font-bold mb-1 uppercase tracking-wide">
@@ -69,12 +69,12 @@ export default function PhonemeBreakdown({ phonemes, wordScore, isCorrect }: Pho
 
               {/* Score */}
               <p className="text-lg font-semibold mb-1">
-                {Math.round(phoneme.annotation.score)}%
+                {Math.round(phoneme.quality_score)}%
               </p>
 
               {/* Comment */}
               <p className="text-xs font-medium opacity-80">
-                {phoneme.annotation.comment}
+                {/* {phoneme.annotation.comment} */}
               </p>
 
               {/* Feedback tip for low scores */}

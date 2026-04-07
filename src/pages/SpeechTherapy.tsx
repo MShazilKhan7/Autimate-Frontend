@@ -14,6 +14,7 @@ import type { SpeechAPIResponse } from '@/data/speechTherapyWords';
 export default function SpeechTherapy() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recordings, setRecordings] = useState<Record<number, SpeechAPIResponse>>({});
+  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<SpeechAPIResponse>(null);
   const navigate = useNavigate();
 
   const word = therapyWords[currentIndex];
@@ -49,7 +50,7 @@ export default function SpeechTherapy() {
   }, [word.id]);
 
   const wordScore = currentRecording?.text_score;
-  const phonemeList = wordScore?.word_score_list?.[0]?.phone_score_list;
+  // const phonemeList = wordScore?.word_score_list?.[0]?.phone_score_list;
 
   return (
     <Layout>
@@ -89,8 +90,8 @@ export default function SpeechTherapy() {
                 image={word.image}
                 category={word.category}
                 phonemes={word.phonemes}
-                score={wordScore?.quality_score}
-                isCorrect={wordScore?.annotation?.correct}
+                score={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_score}
+                isCorrect={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_class}
               />
 
               {/* Audio Controls */}
@@ -98,14 +99,15 @@ export default function SpeechTherapy() {
                 word={word.word}
                 onRecordingComplete={handleRecordingComplete}
                 hasRecording={hasRecording}
+                setSpeechPronunciationScore={setSpeechPronunciationScore}
               />
 
               {/* Phoneme Breakdown (after recording) */}
-              {hasRecording && phonemeList && (
+              {speechPronunciationScore?.text_score.word_score_list?.[0]?.phone_score_list && (
                 <PhonemeBreakdown
-                  phonemes={phonemeList}
-                  wordScore={wordScore!.quality_score}
-                  isCorrect={wordScore!.annotation.correct}
+                  phonemes={speechPronunciationScore?.text_score.word_score_list[0].phone_score_list}
+                  wordScore={speechPronunciationScore?.text_score.word_score_list[0].quality_score}
+                  isCorrect={speechPronunciationScore?.text_score.word_score_list[0].quality_class}
                 />
               )}
 
