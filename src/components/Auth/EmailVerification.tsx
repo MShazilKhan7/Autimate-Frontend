@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, KeyRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,19 @@ interface EmailVerificationProps {
   onVerifySuccess: () => void;
   onBack: () => void;
 }
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+  }
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+};
 
 export default function EmailVerification({
   email,
@@ -58,18 +71,20 @@ export default function EmailVerification({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       className="w-full max-w-md mx-auto"
     >
-      <Card className="therapy-card p-8">
+      <Card className="p-8 md:p-10 border-white/50 bg-white/80 backdrop-blur-xl shadow-2xl shadow-primary/5 rounded-[2rem]">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="text-center mb-8"
         >
-          <div className="text-6xl mb-4">📧</div>
-          <h1 className="text-therapy-xl text-primary mb-2">
+          <div className="inline-flex items-center justify-center p-4 bg-primary/10 text-primary rounded-2xl mb-6 shadow-sm">
+            <Mail className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-3">
             Verify Your Email
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
@@ -79,75 +94,52 @@ export default function EmailVerification({
           </p>
         </motion.div>
 
-        <form
+        <motion.form
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
           onSubmit={(e) => {
             e.preventDefault();
             verifyEmail({ email, otp });
           }}
-          className="space-y-6"
+          className="space-y-8"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="space-y-3"
-          >
-            <label className="block text-sm font-medium text-center">
-              Enter 6-digit verification code
+          <motion.div variants={staggerItem} className="space-y-4">
+            <label className="flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <KeyRound className="w-4 h-4" />
+              Enter Verification Code
             </label>
             <div className="flex justify-center">
               <InputOTP
                 value={otp}
                 onChange={(value) => setOtp(value)}
                 maxLength={6}
-                className="gap-2"
+                className="gap-3"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot
-                    index={0}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
-                  <InputOTPSlot
-                    index={1}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
-                  <InputOTPSlot
-                    index={2}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
-                  <InputOTPSlot
-                    index={3}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
-                  <InputOTPSlot
-                    index={4}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
-                  <InputOTPSlot
-                    index={5}
-                    className="w-12 h-12 text-lg font-semibold rounded-xl border-input-border focus:ring-2 focus:ring-primary-soft transition-all"
-                  />
+                <InputOTPGroup className="gap-2 sm:gap-3">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <InputOTPSlot
+                      key={index}
+                      index={index}
+                      className="w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl font-semibold rounded-xl bg-muted/20 border-transparent focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                    />
+                  ))}
                 </InputOTPGroup>
               </InputOTP>
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="space-y-4"
-          >
+          <motion.div variants={staggerItem} className="space-y-5 pt-2">
             <Button
               type="submit"
               disabled={isVerifyEmailPending || otp.length !== 6}
-              className="w-full py-3 rounded-xl bg-primary-soft hover:bg-primary text-foreground hover:text-primary-foreground font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="w-full py-6 rounded-xl bg-gradient-to-r from-primary to-primary-soft hover:from-primary/90 hover:to-primary-soft/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0 text-base"
             >
               {isVerifyEmailPending ? (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
+                  className="w-6 h-6 border-2 border-current border-t-transparent rounded-full"
                 />
               ) : (
                 <span>Verify Email</span>
@@ -161,23 +153,23 @@ export default function EmailVerification({
               <button
                 type="button"
                 // onClick={handleResendOTP}
-                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                className="text-sm text-primary hover:text-primary/80 font-semibold transition-colors disabled:opacity-50"
               >
                 Resend OTP
               </button>
             </div>
           </motion.div>
-        </form>
+        </motion.form>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="mt-6"
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="mt-8 pt-6 border-t border-muted/30"
         >
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            className="flex items-center justify-center w-full gap-2 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors group"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to sign up
