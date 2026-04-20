@@ -160,12 +160,16 @@ export default function Onboarding() {
 
   if (isCompleting) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="absolute inset-0 warm-gradient opacity-50" />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+        {/* Dynamic Animated Background */}
+        <div className="absolute inset-0 bg-primary/5">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
+        </div>
+        
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center"
+          className="relative z-10 text-center p-12 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-2xl max-w-lg w-full"
         >
           <motion.div
             animate={{ rotate: 360 }}
@@ -198,22 +202,27 @@ export default function Onboarding() {
   if (!currentQuestion) return <div>No questions available</div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute inset-0 warm-gradient opacity-50" />
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background relative overflow-hidden">
+      {/* Dynamic Animated Background */}
+      <div className="absolute inset-0 bg-primary/5">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
+        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-primary-soft/20 via-transparent to-transparent" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full"
+        className="relative z-10 w-full max-w-2xl"
       >
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-10"
         >
-          <h1 className="text-therapy-xl text-primary mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
             Getting to know your child
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             These questions help us create the best therapy experience
           </p>
         </motion.div>
