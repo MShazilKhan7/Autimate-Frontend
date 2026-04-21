@@ -199,41 +199,46 @@ export default function SpeechSpace() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-sky-100 via-purple-50 to-pink-50 relative overflow-hidden">
+      <div className="min-h-full bg-background relative">
+        {/* Background blobs */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full bg-violet-200/20 blur-3xl -translate-y-1/3 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] rounded-full bg-sky-200/15 blur-3xl translate-y-1/3 -translate-x-1/4" />
+          <div className="absolute top-1/2 left-1/2 w-[20rem] h-[20rem] rounded-full bg-primary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        </div>
+
         <FloatingElements />
 
         {/* Header */}
-        <motion.header
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="relative z-10 p-4 flex items-center justify-between"
-        >
+        <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-white/60 backdrop-blur-xl border-b border-white/50 shadow-sm">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => gameState === 'menu' ? navigate('/dashboard') : handleBackToMenu()}
-            className="bg-white/80 hover:bg-white shadow-md"
+            className="bg-white/80 hover:bg-white shadow-md rounded-xl"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          <motion.h1 
-            className="text-2xl font-bold text-primary flex items-center gap-2"
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <span className="text-3xl">🚀</span>
-            Speech Space
-          </motion.h1>
-
-          <div className="flex items-center gap-2 bg-yellow-100 px-3 py-1.5 rounded-full shadow-md">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            <span className="font-bold text-yellow-700">{totalStars}</span>
+          <div className="flex items-center gap-3">
+            <motion.h1
+              className="text-xl font-extrabold text-foreground flex items-center gap-2"
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-2xl">🚀</span>
+              Speech Space
+            </motion.h1>
           </div>
-        </motion.header>
+
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-full shadow-sm">
+            <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+            <span className="font-extrabold text-amber-700 text-sm">{totalStars} Stars</span>
+          </div>
+        </header>
 
         {/* Main Content */}
-        <main className="relative z-10 container mx-auto px-4 pb-8">
+        <main className="relative z-10 container mx-auto px-6 pt-6 pb-10">
           <AnimatePresence mode="wait">
             {/* Menu State */}
             {gameState === 'menu' && (
@@ -275,7 +280,7 @@ export default function SpeechSpace() {
                 className="max-w-4xl mx-auto"
               >
                 {/* Progress */}
-                <div className="mb-6">
+                <div className="mb-8">
                   <ProgressRewards
                     currentIndex={currentItemIndex}
                     totalItems={currentLevel.items.length}
