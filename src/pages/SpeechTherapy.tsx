@@ -14,10 +14,10 @@ import type { SpeechAPIResponse } from '@/data/speechTherapyWords';
 export default function SpeechTherapy() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recordings, setRecordings] = useState<Record<number, SpeechAPIResponse>>({});
-  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<SpeechAPIResponse>(null);
+  const word = therapyWords[currentIndex];                  
   const navigate = useNavigate();
+  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<SpeechAPIResponse>(word.mockResponse);
 
-  const word = therapyWords[currentIndex];
   const currentRecording = recordings[word.id];
   const hasRecording = !!currentRecording;
 

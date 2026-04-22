@@ -145,7 +145,7 @@ export default function AudioControls({
       // 3️⃣ Notify parent
       onRecordingComplete();
 
-      await   scoreSpeech({ text: word, audio: wavBlob });
+      // await   scoreSpeech({ text: word, audio: wavBlob });
     };
     recorder.start();
     setIsRecording(true);
