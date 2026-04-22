@@ -3,7 +3,10 @@ import { getDefaultStore } from "jotai";
 import { toast } from "@/components/ui/use-toast";
 import { authAtom, INITIAL_AUTHENTICATION_VALUE } from "../hooks/useAuth";
 
-const API_URL = import.meta.env.VITE_API_URL;
+let API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+if (API_URL === "http://localhost:") {
+  API_URL = "http://localhost:5000";
+}
 
 let isRefreshing = false;
 let refreshSubscribers: Array<(token: string | null) => void> = [];
@@ -63,7 +66,7 @@ api.interceptors.response.use(
     if (
       error?.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/refresh-token/")
+      !originalRequest.url?.includes("/api/auth/refresh/token")
     ) {
       originalRequest._retry = true;
 
@@ -100,7 +103,7 @@ api.interceptors.response.use(
         // Attempt to refresh token
         const refreshToken = auth.refreshToken;
         const res = await api.post<{ accessToken: string; refreshToken: string }>(
-          "/auth/refresh-token/",
+          "/api/auth/refresh/token",
           { refresh_token: refreshToken }
         );
         const newAccess = res.data.accessToken;
@@ -129,7 +132,7 @@ api.interceptors.response.use(
     // If refresh token request itself failed, logout immediately
     if (
       error?.response?.status === 401 &&
-      error?.config?.url?.includes("/auth/refresh-token/")
+      error?.config?.url?.includes("/api/auth/refresh/token")
     ) {
       const store = getDefaultStore();
       store.set(authAtom, INITIAL_AUTHENTICATION_VALUE);
