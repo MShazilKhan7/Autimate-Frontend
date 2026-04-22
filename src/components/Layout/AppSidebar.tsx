@@ -65,7 +65,7 @@ export function AppSidebar() {
         >
           {!isCollapsed && (
             <h2 className="text-therapy-xl text-primary font-bold mb-2">
-              🌈 TherapyPal
+              Autimate
             </h2>
           )}
           {isCollapsed && (
