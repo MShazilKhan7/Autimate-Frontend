@@ -33,13 +33,13 @@ export default function QuestionCard({
   };
 
   const getAnswerButtonClass = (answerText: string) => {
-    const baseClasses = "w-full p-4 text-left justify-start rounded-xl transition-all duration-200 border-2 ";
+    const baseClasses = "w-full p-5 text-left justify-start rounded-xl transition-all duration-300 border-2 ";
     
     if (selectedAnswer === answerText) {
-      return baseClasses + "bg-primary-soft border-primary text-primary font-medium shadow-sm scale-[1.02]";
+      return baseClasses + "bg-primary/5 border-primary text-primary font-semibold shadow-sm scale-[1.02]";
     }
     
-    return baseClasses + "bg-card hover:bg-secondary-soft border-border hover:border-primary-soft hover:shadow-md";
+    return baseClasses + "bg-muted/10 hover:bg-muted/30 border-transparent hover:border-primary/30 text-foreground";
   };
 
   const getRadioClass = (answerText: string) => {
@@ -60,20 +60,20 @@ export default function QuestionCard({
       transition={{ duration: 0.4 }}
       className="w-full max-w-2xl mx-auto"
     >
-      <Card className="therapy-card p-6 md:p-8 shadow-lg border-0">
+      <Card className="p-8 md:p-10 border-white/50 bg-white/80 backdrop-blur-xl shadow-2xl shadow-primary/5 rounded-[2rem]">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm font-medium text-muted-foreground">
               Question {currentQuestion} of {totalQuestions}
             </span>
-            <span className="text-sm font-medium text-primary bg-primary-soft px-2 py-1 rounded-full">
+            <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
               {Math.round(progressPercentage)}% Complete
             </span>
           </div>
-          <div className="w-full bg-secondary-soft rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
             <motion.div
-              className="h-3 rounded-full bg-gradient-to-r from-primary to-primary-soft"
+              className="h-2 rounded-full bg-gradient-to-r from-primary to-primary-soft"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercentage}%` }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -152,13 +152,13 @@ export default function QuestionCard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
-          className="flex justify-between items-center pt-6 border-t border-border"
+          className="flex justify-between items-center pt-8 border-t border-border/50"
         >
           <Button
             variant="outline"
             onClick={onPrevious}
             disabled={!canGoPrevious}
-            className="px-6 py-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 active:scale-95"
+            className="px-6 py-5 rounded-xl border-2 border-transparent bg-muted/20 hover:bg-muted/40 transition-all duration-300"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -183,7 +183,7 @@ export default function QuestionCard({
             <Button
               onClick={onNext}
               disabled={!canGoNext}
-              className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-soft text-white font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="px-8 py-5 rounded-xl bg-gradient-to-r from-primary to-primary-soft hover:from-primary/90 hover:to-primary-soft/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {currentQuestion === totalQuestions ? (
                 <>
@@ -204,19 +204,18 @@ export default function QuestionCard({
           </div>
         </motion.div>
 
-        {/* Progress Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 text-center"
+          className="mt-8 text-center"
         >
-          <div className="inline-flex items-center space-x-6 text-sm text-muted-foreground bg-secondary-soft px-4 py-2 rounded-full">
-            <span>Total Questions: <strong>{totalQuestions}</strong></span>
+          <div className="inline-flex items-center space-x-6 text-sm text-muted-foreground bg-muted/20 px-6 py-3 rounded-full">
+            <span>Total: <strong className="text-foreground">{totalQuestions}</strong></span>
             <span>•</span>
-            <span>Completed: <strong>{currentQuestion - 1}</strong></span>
+            <span>Completed: <strong className="text-foreground">{currentQuestion - 1}</strong></span>
             <span>•</span>
-            <span>Remaining: <strong>{totalQuestions - currentQuestion + 1}</strong></span>
+            <span>Remaining: <strong className="text-foreground">{totalQuestions - currentQuestion + 1}</strong></span>
           </div>
         </motion.div>
       </Card>

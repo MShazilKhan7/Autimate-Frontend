@@ -1,75 +1,37 @@
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import AuthCard from '@/components/Auth/AuthCard';
 
 export default function Auth() {
-  const navigate = useNavigate();
-
-  const handleAuthSuccess = () => {
-    // Navigate to child info collection after successful auth
-    navigate('/');
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute inset-0 warm-gradient opacity-50" />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        <AuthCard  />
-      </motion.div>
+    <div className="h-screen w-full flex bg-background overflow-hidden">
+      {/* Left Panel - Image Background (Hidden on Mobile) */}
+      <div className="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-start p-16">
+        <img 
+          src="/auth-bg.jpg" 
+          alt="Autism Speech Therapy" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Black overlay gradient for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-transparent" />
+        
+        <div className="relative z-10 mt-8">
+          <h1 className="text-4xl font-bold text-white mb-4 leading-tight drop-shadow-lg">
+            Empowering Every Voice, <br /> One Step at a Time
+          </h1>
+          <p className="text-lg text-white/90 max-w-md leading-relaxed drop-shadow-md">
+            Personalized speech therapy tools designed to support children with autism on their unique journey to communication.
+          </p>
+        </div>
+      </div>
 
-      {/* Floating elements for visual appeal */}
-      <motion.div
-        animate={{
-          y: [0, -20, 0],
-          rotate: [0, 5, 0],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="absolute top-20 left-10 text-4xl opacity-30"
-      >
-        🎈
-      </motion.div>
-
-      <motion.div
-        animate={{
-          y: [0, -15, 0],
-          rotate: [0, -5, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          delay: 1,
-        }}
-        className="absolute top-32 right-16 text-3xl opacity-30"
-      >
-        ✨
-      </motion.div>
-
-      <motion.div
-        animate={{
-          y: [0, -10, 0],
-          rotate: [0, 3, 0],
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          delay: 2,
-        }}
-        className="absolute bottom-20 left-20 text-3xl opacity-30"
-      >
-        🌟
-      </motion.div>
+      {/* Right Panel - Auth Form Container */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
+        {/* Subtle background element for mobile */}
+        <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-primary-soft/30 to-background z-0" />
+        
+        <div className="relative z-10 w-full max-w-md">
+          <AuthCard />
+        </div>
+      </div>
     </div>
   );
 }

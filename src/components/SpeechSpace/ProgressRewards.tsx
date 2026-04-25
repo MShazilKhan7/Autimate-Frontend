@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Trophy, Zap } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { Star, Trophy, Zap, Flame } from 'lucide-react';
 
 interface ProgressRewardsProps {
   currentIndex: number;
@@ -10,71 +9,70 @@ interface ProgressRewardsProps {
   streak: number;
 }
 
-export function ProgressRewards({ 
-  currentIndex, 
-  totalItems, 
-  starsEarned, 
-  levelName,
-  streak 
+export function ProgressRewards({
+  currentIndex, totalItems, starsEarned, levelName, streak,
 }: ProgressRewardsProps) {
-  const progressPercent = ((currentIndex) / totalItems) * 100;
+  const progressPercent = (currentIndex / totalItems) * 100;
 
   return (
-    <div className="bg-card rounded-2xl p-4 shadow-lg border border-primary/10">
-      {/* Level and progress */}
+    <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-primary" />
-          <span className="font-medium text-foreground">{levelName}</span>
+          <div className="p-2 bg-primary/10 text-primary rounded-xl">
+            <Trophy className="w-4 h-4" />
+          </div>
+          <span className="font-bold text-foreground text-sm">{levelName}</span>
         </div>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm font-bold text-muted-foreground bg-muted/20 px-3 py-1 rounded-full">
           {currentIndex + 1} / {totalItems}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-4">
-        <Progress value={progressPercent} className="h-3" />
+      <div className="w-full h-2.5 bg-muted/20 rounded-full overflow-hidden mb-4">
+        <motion.div
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="h-full rounded-full bg-gradient-to-r from-primary to-primary-soft"
+        />
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center justify-between">
-        {/* Stars earned this session */}
-        <motion.div 
-          className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full"
-          animate={starsEarned > 0 ? { scale: [1, 1.1, 1] } : {}}
+      <div className="flex items-center gap-3">
+        {/* Stars */}
+        <motion.div
+          animate={starsEarned > 0 ? { scale: [1, 1.15, 1] } : {}}
           key={starsEarned}
+          className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full"
         >
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-          <span className="font-bold text-yellow-700 text-sm">{starsEarned}</span>
+          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+          <span className="font-extrabold text-amber-700 text-sm">{starsEarned}</span>
         </motion.div>
 
-        {/* Streak indicator */}
+        {/* Streak */}
         {streak > 1 && (
-          <motion.div 
+          <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full"
+            className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-full"
           >
-            <Zap className="w-4 h-4 text-orange-500 fill-orange-500" />
-            <span className="font-bold text-orange-700 text-sm">{streak}x Streak!</span>
+            <Flame className="w-3.5 h-3.5 text-rose-500" />
+            <span className="font-extrabold text-rose-700 text-sm">{streak}x Streak!</span>
           </motion.div>
         )}
 
         {/* Progress dots */}
-        <div className="flex gap-1">
-          {[...Array(Math.min(totalItems, 5))].map((_, i) => (
-            <motion.div
+        <div className="flex gap-1.5 ml-auto">
+          {[...Array(Math.min(totalItems, 8))].map((_, i) => (
+            <div
               key={i}
-              className={`w-2.5 h-2.5 rounded-full ${
-                i < currentIndex 
-                  ? 'bg-green-500' 
-                  : i === currentIndex 
-                    ? 'bg-primary' 
-                    : 'bg-muted'
+              className={`rounded-full transition-all duration-300 ${
+                i < currentIndex
+                  ? 'w-2 h-2 bg-emerald-500'
+                  : i === currentIndex
+                  ? 'w-3 h-3 bg-primary shadow-sm shadow-primary/30'
+                  : 'w-2 h-2 bg-muted/40'
               }`}
-              animate={i === currentIndex ? { scale: [1, 1.3, 1] } : {}}
-              transition={{ duration: 1, repeat: Infinity }}
             />
           ))}
         </div>

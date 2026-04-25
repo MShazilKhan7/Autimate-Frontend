@@ -16,9 +16,10 @@ interface PracticeCardProps {
   onComplete: (score: number) => void;
   onPlayAudio: () => void;
   isPlaying: boolean;
+  onRecordingChange?: (isRecording: boolean) => void;
 }
 
-export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying }: PracticeCardProps) {
+export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying, onRecordingChange }: PracticeCardProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingProgress, setRecordingProgress] = useState(0);
   const [hasRecorded, setHasRecorded] = useState(false);
@@ -28,7 +29,8 @@ export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying }: Pract
     setIsRecording(true);
     setRecordingProgress(0);
     setHasRecorded(false);
-  }, []);
+    onRecordingChange?.(true);
+  }, [onRecordingChange]);
 
   useEffect(() => {
     if (isRecording) {
@@ -37,6 +39,7 @@ export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying }: Pract
           if (prev >= 100) {
             setIsRecording(false);
             setHasRecorded(true);
+            onRecordingChange?.(false);
             // Simulate scoring
             const simulatedScore = Math.floor(Math.random() * 4) + 7; // 7-10
             setTimeout(() => onComplete(simulatedScore), 500);
@@ -47,7 +50,7 @@ export function PracticeCard({ item, onComplete, onPlayAudio, isPlaying }: Pract
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isRecording, onComplete]);
+  }, [isRecording, onComplete, onRecordingChange]);
 
   const resetPractice = () => {
     setHasRecorded(false);
