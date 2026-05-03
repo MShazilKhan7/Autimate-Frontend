@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Volume2 } from 'lucide-react';
+import { ArrowLeft, Star, Volume2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import { TeacherCharacter3D } from '@/components/SpeechSpace/TeacherCharacter3D';
@@ -12,59 +12,47 @@ import { ProgressRewards } from '@/components/SpeechSpace/ProgressRewards';
 import { FloatingElements } from '@/components/SpeechSpace/FloatingElements';
 import { LevelCompleteModal } from '@/components/SpeechSpace/LevelCompleteModal';
 import { Button } from '@/components/ui/button';
-import levelsData from '@/data/speechSpaceLevels.json';
+import { useQuery } from '@tanstack/react-query';
+import { spaceAPI, SpeechSpaceLevel } from '@/api/space';
+import { useAuth } from '@/hooks/useAuth';
 
 type GameState = 'menu' | 'playing' | 'feedback' | 'levelComplete';
 type CharacterMood = 'happy' | 'encouraging' | 'celebrating' | 'thinking' | 'idle';
 
-interface PracticeItem {
-  id: string;
-  text: string;
-  type: 'letter' | 'word' | 'sentence';
-  hint: string;
-  emoji?: string;
-}
-
-interface Level {
-  id: number;
-  name: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  items: PracticeItem[];
-  starsRequired: number;
-}
-
-const levels = levelsData.levels as Level[];
-
-interface LevelProgress {
-  levelId: number;
-  completed: boolean;
-  starsEarned: number;
-}
-
 export default function SpeechSpace() {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [gameState, setGameState] = useState<GameState>('menu');
-  const [currentLevelId, setCurrentLevelId] = useState(1);
+  const [currentLevelId, setCurrentLevelId] = useState<string | null>(null);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [sessionStars, setSessionStars] = useState(0);
   const [totalStars, setTotalStars] = useState(() => {
     const saved = localStorage.getItem('speechSpace_totalStars');
     return saved ? parseInt(saved) : 0;
   });
-  const [completedLevels, setCompletedLevels] = useState<number[]>(() => {
+  const [completedLevels, setCompletedLevels] = useState<string[]>(() => {
     const saved = localStorage.getItem('speechSpace_completedLevels');
     return saved ? JSON.parse(saved) : [];
   });
   const [streak, setStreak] = useState(0);
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [isUserSpeaking, setIsUserSpeaking] = useState(false);  // mic active
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [characterMood, setCharacterMood] = useState<CharacterMood>('idle');
   const [characterMessage, setCharacterMessage] = useState<string>('');
 
-  const currentLevel = levels.find(l => l.id === currentLevelId);
+  useEffect(() => {
+    if (!isLoggedIn) navigate('/auth');
+  }, [isLoggedIn, navigate]);
+
+  // Fetch Data from Backend
+  const { data: levelsData, isLoading } = useQuery({
+    queryKey: ['speech-space'],
+    queryFn: spaceAPI.getAll
+  });
+
+  const levels: SpeechSpaceLevel[] = levelsData?.data || [];
+  const currentLevel = levels.find(l => l._id === currentLevelId);
   const currentItem = currentLevel?.items[currentItemIndex];
 
   // Save progress to localStorage
@@ -73,7 +61,7 @@ export default function SpeechSpace() {
     localStorage.setItem('speechSpace_completedLevels', JSON.stringify(completedLevels));
   }, [totalStars, completedLevels]);
 
-  // Character messages based on state
+  // Character messages
   useEffect(() => {
     if (gameState === 'menu') {
       setCharacterMessage("Let's practice speaking! Pick a level! 🎯");
@@ -91,24 +79,19 @@ export default function SpeechSpace() {
 
   const playAudio = useCallback(() => {
     if (!currentItem || isPlayingAudio) return;
-    
     setIsPlayingAudio(true);
     setCharacterMood('thinking');
-    
-    // Use Web Speech API
     const utterance = new SpeechSynthesisUtterance(currentItem.text);
-    utterance.rate = 0.7; // Slower for clarity
-    utterance.pitch = 1.1; // Slightly higher for child-friendly
-    
+    utterance.rate = 0.7;
+    utterance.pitch = 1.1;
     utterance.onend = () => {
       setIsPlayingAudio(false);
       setCharacterMood('encouraging');
     };
-    
     speechSynthesis.speak(utterance);
   }, [currentItem, isPlayingAudio]);
 
-  const handleSelectLevel = (levelId: number) => {
+  const handleSelectLevel = (levelId: string) => {
     setCurrentLevelId(levelId);
     setCurrentItemIndex(0);
     setSessionStars(0);
@@ -120,8 +103,6 @@ export default function SpeechSpace() {
 
   const handlePracticeComplete = (score: number) => {
     setLastScore(score);
-    
-    // Calculate stars (3 stars for 9-10, 2 for 7-8, 1 for 5-6, 0 for below)
     let starsEarned = 0;
     if (score >= 9) starsEarned = 3;
     else if (score >= 7) starsEarned = 2;
@@ -129,39 +110,26 @@ export default function SpeechSpace() {
 
     setSessionStars(prev => prev + starsEarned);
     setTotalStars(prev => prev + starsEarned);
+    if (score >= 7) setStreak(prev => prev + 1); else setStreak(0);
 
-    // Update streak
-    if (score >= 7) {
-      setStreak(prev => prev + 1);
-    } else {
-      setStreak(0);
-    }
-
-    // Set character mood based on score
     if (score >= 9) {
       setCharacterMood('celebrating');
       setCharacterMessage("WOW! Amazing! You're a superstar! 🌟");
     } else if (score >= 7) {
       setCharacterMood('happy');
       setCharacterMessage("Great job! Keep it up! 🎉");
-    } else if (score >= 5) {
-      setCharacterMood('encouraging');
-      setCharacterMessage("Good try! You're getting better! 💪");
     } else {
       setCharacterMood('encouraging');
-      setCharacterMessage("Keep practicing! You can do it! 🌱");
+      setCharacterMessage("Good try! You're getting better! 💪");
     }
-
     setGameState('feedback');
   };
 
   const handleContinue = () => {
     if (!currentLevel) return;
-
     if (currentItemIndex >= currentLevel.items.length - 1) {
-      // Level complete
-      if (!completedLevels.includes(currentLevelId)) {
-        setCompletedLevels(prev => [...prev, currentLevelId]);
+      if (!completedLevels.includes(currentLevelId!)) {
+        setCompletedLevels(prev => [...prev, currentLevelId!]);
       }
       setGameState('levelComplete');
     } else {
@@ -172,13 +140,10 @@ export default function SpeechSpace() {
   };
 
   const handleNextLevel = () => {
-    const nextLevel = levels.find(l => l.id === currentLevelId + 1);
+    const currentIndex = levels.findIndex(l => l._id === currentLevelId);
+    const nextLevel = levels[currentIndex + 1];
     if (nextLevel && totalStars >= nextLevel.starsRequired) {
-      setCurrentLevelId(currentLevelId + 1);
-      setCurrentItemIndex(0);
-      setSessionStars(0);
-      setStreak(0);
-      setGameState('playing');
+      handleSelectLevel(nextLevel._id!);
     } else {
       setGameState('menu');
     }
@@ -199,188 +164,94 @@ export default function SpeechSpace() {
     setLastScore(null);
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="min-h-full bg-background relative">
-        {/* Background blobs */}
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full bg-violet-200/20 blur-3xl -translate-y-1/3 translate-x-1/4" />
           <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] rounded-full bg-sky-200/15 blur-3xl translate-y-1/3 -translate-x-1/4" />
-          <div className="absolute top-1/2 left-1/2 w-[20rem] h-[20rem] rounded-full bg-primary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
         </div>
 
         <FloatingElements />
 
-        {/* Header */}
         <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-white/60 backdrop-blur-xl border-b border-white/50 shadow-sm">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => gameState === 'menu' ? navigate('/dashboard') : handleBackToMenu()}
-            className="bg-white/80 hover:bg-white shadow-md rounded-xl"
-          >
+          <Button variant="ghost" size="icon" onClick={() => gameState === 'menu' ? navigate('/dashboard') : handleBackToMenu()} className="bg-white/80 hover:bg-white shadow-md rounded-xl">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-
           <div className="flex items-center gap-3">
-            <motion.h1
-              className="text-xl font-extrabold text-foreground flex items-center gap-2"
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <span className="text-2xl">🚀</span>
-              Speech Space
+            <motion.h1 className="text-xl font-extrabold text-foreground flex items-center gap-2" animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+              <span className="text-2xl">🚀</span> Speech Space
             </motion.h1>
           </div>
-
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-full shadow-sm">
             <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
             <span className="font-extrabold text-amber-700 text-sm">{totalStars} Stars</span>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="relative z-10 container mx-auto px-6 pt-6 pb-10">
           <AnimatePresence mode="wait">
-            {/* Menu State */}
             {gameState === 'menu' && (
-              <motion.div
-                key="menu"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-2xl mx-auto"
-              >
-                {/* Characters side-by-side in menu */}
+              <motion.div key="menu" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-2xl mx-auto">
                 <div className="flex justify-center items-end gap-10 mb-6">
                   <div className="flex flex-col items-center">
                     <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Zara</p>
-                    <TeacherCharacter3D
-                      isSpeaking={false}
-                      mood={characterMood}
-                      message={characterMessage}
-                      size={180}
-                    />
+                    <TeacherCharacter3D isSpeaking={false} mood={characterMood} message={characterMessage} size={180} />
                   </div>
                   <div className="flex flex-col items-center">
                     <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">You</p>
-                    <KidCharacter3D
-                      isSpeaking={false}
-                      isListening={false}
-                      mood="happy"
-                      size={160}
-                    />
+                    <KidCharacter3D isSpeaking={false} isListening={false} mood="happy" size={160} />
                   </div>
                 </div>
-
-                {/* Level Selection */}
                 <LevelSelector
-                  levels={levels}
-                  currentLevel={currentLevelId}
+                  levels={levels.map(l => ({
+                    ...l,
+                    id: l.levelNumber, // adapt to component's expected id type if needed
+                    unlocked: totalStars >= l.starsRequired
+                  }))}
+                  currentLevel={currentLevel?.levelNumber || 0}
                   totalStars={totalStars}
-                  completedLevels={completedLevels}
-                  onSelectLevel={handleSelectLevel}
+                  completedLevels={completedLevels.map(id => levels.find(l => l._id === id)?.levelNumber || 0)}
+                  onSelectLevel={(num) => {
+                    const l = levels.find(lv => lv.levelNumber === num);
+                    if (l) handleSelectLevel(l._id!);
+                  }}
                 />
               </motion.div>
             )}
 
-            {/* Playing State */}
             {(gameState === 'playing' || gameState === 'feedback') && currentLevel && currentItem && (
-              <motion.div
-                key="playing"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto"
-              >
-                {/* Progress */}
+              <motion.div key="playing" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                  <ProgressRewards
-                    currentIndex={currentItemIndex}
-                    totalItems={currentLevel.items.length}
-                    starsEarned={sessionStars}
-                    levelName={currentLevel.name}
-                    streak={streak}
-                  />
+                  <ProgressRewards currentIndex={currentItemIndex} totalItems={currentLevel.items.length} starsEarned={sessionStars} levelName={currentLevel.name} streak={streak} />
                 </div>
-
-                {/* Two-panel layout */}
                 <div className="grid md:grid-cols-2 gap-6">
-                  {/* Left: AI Character */}
-                  <motion.div 
-                    className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm rounded-3xl p-6 flex flex-col items-center justify-center shadow-xl border border-cyan-400/20 relative overflow-hidden"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    {/* subtle grid lines for sci-fi feel */}
-                    <div className="absolute inset-0 opacity-5 pointer-events-none" style={{
-                      backgroundImage: 'linear-gradient(rgba(0,212,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,1) 1px, transparent 1px)',
-                      backgroundSize: '30px 30px'
-                    }} />
-
-                    <TeacherCharacter3D
-                      isSpeaking={isPlayingAudio}
-                      mood={characterMood}
-                      message={characterMessage}
-                      label="Zara"
-                      size={210}
-                    />
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={playAudio}
-                      disabled={isPlayingAudio}
-                      className={`
-                        mt-4 flex items-center gap-2 px-6 py-3 rounded-full font-bold
-                        border-2 transition-all
-                        ${isPlayingAudio 
-                          ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 cursor-not-allowed' 
-                          : 'bg-cyan-500/10 text-cyan-300 border-cyan-400/40 hover:bg-cyan-500/25 hover:border-cyan-400/80 shadow-lg'
-                        }
-                      `}
-                    >
-                      <Volume2 className={`w-5 h-5 ${isPlayingAudio ? 'animate-pulse' : ''}`} />
-                      {isPlayingAudio ? '🔊 Speaking…' : 'Listen First! 🔊'}
+                  <motion.div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm rounded-3xl p-6 flex flex-col items-center justify-center shadow-xl border border-cyan-400/20 relative overflow-hidden" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+                    <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(0,212,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,1) 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+                    <TeacherCharacter3D isSpeaking={isPlayingAudio} mood={characterMood} message={characterMessage} label="Zara" size={210} />
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={playAudio} disabled={isPlayingAudio} className={`mt-4 flex items-center gap-2 px-6 py-3 rounded-full font-bold border-2 transition-all ${isPlayingAudio ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 cursor-not-allowed' : 'bg-cyan-500/10 text-cyan-300 border-cyan-400/40 hover:bg-cyan-500/25 hover:border-cyan-400/80 shadow-lg'}`}>
+                      <Volume2 className={`w-5 h-5 ${isPlayingAudio ? 'animate-pulse' : ''}`} /> {isPlayingAudio ? '🔊 Speaking…' : 'Listen First! 🔊'}
                     </motion.button>
                   </motion.div>
-
-                  {/* Right: Practice Card with Kid character on top */}
-                  <motion.div
-                    initial={{ x: 20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex flex-col gap-4"
-                  >
-                    {/* Kid character header */}
+                  <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="flex flex-col gap-4">
                     <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-4 flex items-center gap-4 shadow-lg border border-purple-200/50">
-                      <KidCharacter3D
-                        isSpeaking={isUserSpeaking}
-                        isListening={isPlayingAudio}
-                        mood={characterMood}
-                        label="You"
-                        size={110}
-                      />
+                      <KidCharacter3D isSpeaking={isUserSpeaking} isListening={isPlayingAudio} mood={characterMood} label="You" size={110} />
                       <div className="flex-1">
                         <p className="font-bold text-purple-800 text-sm">Your turn to speak!</p>
-                        <p className="text-xs text-purple-600 mt-1">
-                          {isUserSpeaking
-                            ? '🎤 I can hear you — great job!'
-                            : isPlayingAudio
-                            ? '👂 Listen carefully…'
-                            : 'Tap the mic and say the word!'}
-                        </p>
+                        <p className="text-xs text-purple-600 mt-1">{isUserSpeaking ? '🎤 I can hear you!' : isPlayingAudio ? '👂 Listen carefully…' : 'Tap the mic and say the word!'}</p>
                       </div>
                     </div>
-
-                    <PracticeCard
-                      item={currentItem}
-                      onComplete={handlePracticeComplete}
-                      onPlayAudio={playAudio}
-                      isPlaying={isPlayingAudio}
-                      onRecordingChange={setIsUserSpeaking}
-                    />
+                    <PracticeCard item={currentItem} onComplete={handlePracticeComplete} onPlayAudio={playAudio} isPlaying={isPlayingAudio} onRecordingChange={setIsUserSpeaking} />
                   </motion.div>
                 </div>
               </motion.div>
@@ -388,14 +259,7 @@ export default function SpeechSpace() {
           </AnimatePresence>
         </main>
 
-        {/* Feedback Modal */}
-        <FeedbackDisplay
-          score={lastScore}
-          onContinue={handleContinue}
-          isVisible={gameState === 'feedback'}
-        />
-
-        {/* Level Complete Modal */}
+        <FeedbackDisplay score={lastScore} onContinue={handleContinue} isVisible={gameState === 'feedback'} />
         <LevelCompleteModal
           isOpen={gameState === 'levelComplete'}
           levelName={currentLevel?.name || ''}
@@ -403,10 +267,7 @@ export default function SpeechSpace() {
           totalPossibleStars={(currentLevel?.items.length || 1) * 3}
           onNextLevel={handleNextLevel}
           onReplay={handleReplayLevel}
-          hasNextLevel={
-            !!levels.find(l => l.id === currentLevelId + 1) &&
-            totalStars >= (levels.find(l => l.id === currentLevelId + 1)?.starsRequired || Infinity)
-          }
+          hasNextLevel={levels.indexOf(currentLevel!) < levels.length - 1}
         />
       </div>
     </Layout>
