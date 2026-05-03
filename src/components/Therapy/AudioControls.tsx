@@ -231,6 +231,8 @@ import { Mic, Square, Play, Volume2, Pause, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScoreSpeech } from "@/hooks/useSpeechAce";
 import { useAIFeedback } from "@/hooks/useAIFeedback";
+import { playSuccessSound, playErrorSound } from "@/utils/sounds";
+
 
 interface AudioControlsProps {
   word: string;
@@ -396,6 +398,14 @@ export default function AudioControls({
       const mockScore = wordData.mockResponse;
       setSpeechPronunciationScore(mockScore);
 
+      // Play sounds based on score
+      const qualityScore = mockScore?.text_score?.word_score_list?.[0]?.quality_score ?? 0;
+      if (qualityScore >= 70) {
+        playSuccessSound();
+      } else {
+        playErrorSound();
+      }
+
       const feedbackPayload = {
         id: wordData.id,
         word: wordData.word,
@@ -404,6 +414,7 @@ export default function AudioControls({
         phonemes: wordData.phonemes,
         mockResponse: mockScore,
       };
+
 
       generateFeedback(feedbackPayload, {
         onSuccess: (data) => {

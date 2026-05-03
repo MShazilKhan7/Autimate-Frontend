@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { spaceAPI, SpeechSpaceLevel } from '@/api/space';
 import { useAuth } from '@/hooks/useAuth';
+import { playSuccessSound, playErrorSound } from '@/utils/sounds';
+
 
 type GameState = 'menu' | 'playing' | 'feedback' | 'levelComplete';
 type CharacterMood = 'happy' | 'encouraging' | 'celebrating' | 'thinking' | 'idle';
@@ -115,13 +117,17 @@ export default function SpeechSpace() {
     if (score >= 9) {
       setCharacterMood('celebrating');
       setCharacterMessage("WOW! Amazing! You're a superstar! 🌟");
+      playSuccessSound();
     } else if (score >= 7) {
       setCharacterMood('happy');
       setCharacterMessage("Great job! Keep it up! 🎉");
+      playSuccessSound();
     } else {
       setCharacterMood('encouraging');
       setCharacterMessage("Good try! You're getting better! 💪");
+      playErrorSound();
     }
+
     setGameState('feedback');
   };
 

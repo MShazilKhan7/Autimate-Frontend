@@ -11,4 +11,5 @@ export interface SocialSkill {
 
 export const socialAPI = {
   getAll: () => api.get("/api/social-skills").then(res => res.data),
+  getById: (id: string) => api.get(`/api/social-skills/${id}`).then(res => res.data),
 };

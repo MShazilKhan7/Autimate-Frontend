@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import socialTasks from '@/data/socialTasks.json';
+import { socialAPI } from '@/api/social';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { playSuccessSound, playErrorSound } from '@/utils/sounds';
+
 
 export default function SocialSkillsPractice() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -21,13 +25,31 @@ export default function SocialSkillsPractice() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [stars, setStars] = useState(0);
 
-  const task = socialTasks.find(t => t.id === Number(taskId));
+  // Fetch from API
+  const { data: skillData, isLoading } = useQuery({
+    queryKey: ['social-skill', taskId],
+    queryFn: () => socialAPI.getById(taskId!),
+    enabled: !!taskId
+  });
+
+  const task = skillData?.data;
 
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/auth');
     }
   }, [isLoggedIn, navigate]);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="p-20 flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Loading practice session...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!task) {
     return (
@@ -74,6 +96,7 @@ export default function SocialSkillsPractice() {
         setStars(earnedStars);
         setIsCompleted(true);
         setFeedback('Amazing! Great job!');
+        playSuccessSound();
         
         toast({
           title: '🌟 Wonderful!',
@@ -81,7 +104,9 @@ export default function SocialSkillsPractice() {
         });
       } else {
         setFeedback('Almost there! Try again!');
+        playErrorSound();
       }
+
     }, 2000);
   };
 
