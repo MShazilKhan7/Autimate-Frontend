@@ -105,7 +105,13 @@ export default function SocialSkillsPractice() {
       } else {
         setFeedback('Almost there! Try again!');
         playErrorSound();
+        toast({
+          title: 'Keep Trying! 💪',
+          description: "You're getting closer! Let's try one more time.",
+          variant: "destructive"
+        });
       }
+
 
     }, 2000);
   };

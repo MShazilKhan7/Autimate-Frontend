@@ -3,7 +3,8 @@
  */
 
 const SUCCESS_SOUND_URL = 'https://codeskulptor-demos.commondatastorage.googleapis.com/descent/gotitem.mp3';
-const ERROR_SOUND_URL = 'https://codeskulptor-demos.commondatastorage.googleapis.com/descent/Crumble%20Sound.mp3';
+const ERROR_SOUND_URL = 'https://codeskulptor-demos.commondatastorage.googleapis.com/descent/spring.mp3';
+
 
 export const playSuccessSound = () => {
   const audio = new Audio(SUCCESS_SOUND_URL);

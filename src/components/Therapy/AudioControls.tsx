@@ -231,6 +231,8 @@ import { Mic, Square, Play, Volume2, Pause, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScoreSpeech } from "@/hooks/useSpeechAce";
 import { useAIFeedback } from "@/hooks/useAIFeedback";
+import { useToast } from "@/hooks/use-toast";
+
 import { playSuccessSound, playErrorSound } from "@/utils/sounds";
 
 
@@ -250,7 +252,9 @@ export default function AudioControls({
   setSpeechPronunciationScore,
   onFeedbackReady,
 }: AudioControlsProps) {
+  const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
+
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingChild, setIsPlayingChild] = useState(false);
   const [isPlayingRef, setIsPlayingRef] = useState(false);
@@ -395,8 +399,20 @@ export default function AudioControls({
       onRecordingComplete();
 
       // ✅ Use mock response directly (swap scoreSpeech() when API key is ready)
-      const mockScore = wordData.mockResponse;
+      const fallbackMock = {
+        text_score: {
+          quality_score: 85,
+          word_score_list: [{
+            quality_score: 85,
+            quality_class: "pass",
+            phone_score_list: wordData.relatedPhoneme?.map((p: string) => ({ phone: p, quality_score: 80 + Math.floor(Math.random() * 20) })) || []
+          }]
+        }
+      };
+      
+      const mockScore = wordData.mockResponse || fallbackMock;
       setSpeechPronunciationScore(mockScore);
+
 
       // Play sounds based on score
       const qualityScore = mockScore?.text_score?.word_score_list?.[0]?.quality_score ?? 0;
@@ -404,7 +420,13 @@ export default function AudioControls({
         playSuccessSound();
       } else {
         playErrorSound();
+        toast({
+          title: 'Almost there! 🗣️',
+          description: "Try to say the word a bit more clearly. You can do it!",
+          variant: "destructive"
+        });
       }
+
 
       const feedbackPayload = {
         id: wordData.id,

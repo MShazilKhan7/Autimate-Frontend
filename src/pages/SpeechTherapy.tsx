@@ -195,13 +195,16 @@ export default function SpeechTherapy() {
                     onFeedbackReady={handleFeedbackReady}
                   />
 
-                  {speechPronunciationScore?.text_score.word_score_list?.[0]?.phone_score_list && (
+                  {speechPronunciationScore?.text_score?.word_score_list?.[0]?.phone_score_list && (
                     <PhonemeBreakdown
-                      phonemes={speechPronunciationScore.text_score.word_score_list[0].phone_score_list}
-                      wordScore={speechPronunciationScore.text_score.word_score_list[0].quality_score}
-                      isCorrect={speechPronunciationScore.text_score.word_score_list[0].quality_class}
+                      phonemes={speechPronunciationScore?.text_score?.word_score_list?.[0]?.phone_score_list}
+                      wordScore={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_score}
+                      isCorrect={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_class}
+
                     />
                   )}
+
+
 
                   {/* AI Feedback Banner */}
                   <AnimatePresence>

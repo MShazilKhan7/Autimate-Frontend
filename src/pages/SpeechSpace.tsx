@@ -12,6 +12,8 @@ import { ProgressRewards } from '@/components/SpeechSpace/ProgressRewards';
 import { FloatingElements } from '@/components/SpeechSpace/FloatingElements';
 import { LevelCompleteModal } from '@/components/SpeechSpace/LevelCompleteModal';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+
 import { useQuery } from '@tanstack/react-query';
 import { spaceAPI, SpeechSpaceLevel } from '@/api/space';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,7 +26,9 @@ type CharacterMood = 'happy' | 'encouraging' | 'celebrating' | 'thinking' | 'idl
 export default function SpeechSpace() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
+  const { toast } = useToast();
   const [gameState, setGameState] = useState<GameState>('menu');
+
   const [currentLevelId, setCurrentLevelId] = useState<string | null>(null);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [sessionStars, setSessionStars] = useState(0);
@@ -126,7 +130,13 @@ export default function SpeechSpace() {
       setCharacterMood('encouraging');
       setCharacterMessage("Good try! You're getting better! 💪");
       playErrorSound();
+      toast({
+        title: 'Keep going! 🚀',
+        description: "That was a good attempt! Try once more to get those stars!",
+        variant: "destructive"
+      });
     }
+
 
     setGameState('feedback');
   };
