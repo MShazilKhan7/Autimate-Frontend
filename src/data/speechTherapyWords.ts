@@ -1,42 +1,11 @@
 // Mock word list with phoneme breakdowns matching the API response structure
 
-export interface PhonemeScore {
-  phone: string;
-  quality_score: number;
-  sound_most_like: string;
-}
-
-export interface WordScore {
-  word: string;
-  quality_score: number;
-  quality_class: "pass" | "fail";
-  phone_score_list: PhonemeScore[];
-}
-
-export interface TextScore {
-  text: string;
-  quality_score: number;
-  fidelity_class: string;
-  word_score_list: WordScore[];
-  annotation: {
-    score: number;
-    correct: boolean;
-    all_correct: boolean;
-  };
-}
-
-export interface SpeechAPIResponse {
-  status: string;
-  text_score: TextScore;
-}
-
 export interface TherapyWord {
   id: number;
   word: string;
-  image: string;
+  images: string[];
   category: string;
   phonemes: string[]; // visual breakdown
-  mockResponse: SpeechAPIResponse;
 }
 
 export interface ExerciseWord {
@@ -46,358 +15,242 @@ export interface ExerciseWord {
   image: string[];
 }
 
+/** Matches `data/exercisesCurriculum.json` — use when merging steps with `therapyWords`. */
+export type CurriculumExerciseKind =
+  | "imitation"
+  | "phoneme_completion"
+  | "expressive_label"
+  | "receptive_choice"
+  | "word_completion"
+  | "checkpoint";
+
+export type CurriculumPhase =
+  | "say_it_together"
+  | "sound_puzzle"
+  | "name_it"
+  | "listen_and_tap"
+  | "finish_the_word";
+
+export enum EXERCISE_KIND {
+  IMIATION = "imitation",
+  PHONEME_COMPLETION = "phoneme_completion",
+  EXPRESSIVE_LABEL = "expressive_label",
+  RECEPTIVE_CHOICE = "receptive_choice",
+  WORD_COMPLETION = "word_completion",
+  CHECKPOINT = "checkpoint",
+}
+
+export interface CurriculumStepBase {
+  id: string;
+  order: number;
+  type: CurriculumExerciseKind;
+  wordId?: number;
+  phase?: CurriculumPhase;
+  title?: string;
+  instructions?: string;
+  hints?: string[];
+}
+
+export interface ImitationStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.IMIATION;
+  wordId: number;
+  title: string;
+  instructions: string;
+  ui?: { showPhonemeTiles?: boolean; emphasis?: "listen_then_repeat" };
+}
+
+export interface PhonemeCompletionStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.PHONEME_COMPLETION;
+  wordId: number;
+  phonemeSlots: (string | null)[];
+  options: string[];
+  correctOption: string;
+}
+
+export interface ExpressiveLabelStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.EXPRESSIVE_LABEL;
+  wordId: number;
+  acceptableAnswers: string[];
+}
+
+export interface ReceptiveChoiceStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.RECEPTIVE_CHOICE;
+  wordId: number;
+  promptSpoken?: string;
+  choiceWordIds: number[];
+  correctWordId: number;
+  shuffle?: boolean;
+  layout?: "grid" | "row";
+}
+
+export interface WordCompletionStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.WORD_COMPLETION;
+  wordId: number;
+  partialDisplay: string;
+  expectedSpeakWord: string;
+}
+
+export interface CheckpointStep extends CurriculumStepBase {
+  type: EXERCISE_KIND.CHECKPOINT;
+  body: string;
+  celebrate?: boolean;
+  /** Short phrase spoken aloud before continuing (defaults in UI if omitted). */
+  speakPhrase?: string;
+}
+
+export type CurriculumStep =
+  | ImitationStep
+  | PhonemeCompletionStep
+  | ExpressiveLabelStep
+  | ReceptiveChoiceStep
+  | WordCompletionStep
+  | CheckpointStep;
+
+export interface CurriculumModule {
+  id: string;
+  order: number;
+  title: string;
+  subtitle: string;
+  focus: string;
+  wordIds: number[];
+  lessonIntro?: { title: string; body: string };
+  steps: CurriculumStep[];
+}
+
+export interface ExercisesCurriculum {
+  version: number;
+  title: string;
+  description: string;
+  exerciseKinds: CurriculumExerciseKind[];
+  modules: CurriculumModule[];
+}
+
+/** Shape returned from `/api/score-speech` — optional fields used by therapy UI. */
+export interface SpeechAPIResponse {
+  text_score?: {
+    word_score_list?: Array<{
+      quality_score?: number;
+      quality_class?: string;
+      phone_score_list?: unknown[];
+    }>;
+  };
+}
+
+export function getTherapyWordById(id: number, words: TherapyWord[] = therapyWords): TherapyWord | undefined {
+  return words.find((w) => w.id === id);
+}
+
+/** Distinct word categories covered by a module’s vocabulary (for UI chips). */
+export function getCategoryLabelsForModule(
+  module: { wordIds: number[] },
+  words: TherapyWord[] = therapyWords,
+): string[] {
+  const labels = new Set<string>();
+  for (const id of module.wordIds) {
+    const w = getTherapyWordById(id, words);
+    if (w?.category) labels.add(w.category);
+  }
+  return Array.from(labels).sort((a, b) => a.localeCompare(b));
+}
+
 export const therapyWords: TherapyWord[] = [
   {
     id: 1,
     word: "Apple",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1584306670957-acf935f5033c?w=400&h=400&fit=crop",
+    ],
     category: "fruit",
     phonemes: ["AE", "P", "AH", "L"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Apple",
-        quality_score: 92,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Apple",
-            quality_score: 92,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "ae",
-                quality_score: 95,
-                sound_most_like: "ae",
-              },
-              {
-                phone: "p",
-                quality_score: 88,
-                sound_most_like: "p",
-              },
-              {
-                phone: "ah",
-                quality_score: 78,
-                sound_most_like: "ah",
-                
-              },
-              {
-                phone: "l",
-                quality_score: 100,
-                sound_most_like: "l",
-              },
-            ],
-          },
-        ],
-        annotation: { score: 92, correct: true, all_correct: false },
-      },
-    },
   },
   {
     id: 2,
     word: "Cat",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=400&fit=crop",
+    ],
     category: "animal",
     phonemes: ["K", "AE", "T"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Cat",
-        quality_score: 97,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Cat",
-            quality_score: 97,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "k",
-                quality_score: 100,
-                sound_most_like: "k",
-                annotation: { correct: true, comment: "Good", score: 100 },
-              },
-              {
-                phone: "ae",
-                quality_score: 95,
-                sound_most_like: "ae",
-                annotation: { correct: true, comment: "Good", score: 95 },
-              },
-              {
-                phone: "t",
-                quality_score: 96,
-                sound_most_like: "t",
-                annotation: { correct: true, comment: "Good", score: 96 },
-              },
-            ],
-            annotation: { score: 97, correct: true },
-          },
-        ],
-        annotation: { score: 97, correct: true, all_correct: true },
-      },
-    },
   },
   {
     id: 3,
     word: "Dog",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop",
+    ],
     category: "animal",
     phonemes: ["D", "AO", "G"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Dog",
-        quality_score: 85,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Dog",
-            quality_score: 85,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "d",
-                quality_score: 90,
-                sound_most_like: "d",
-                annotation: { correct: true, comment: "Good", score: 90 },
-              },
-              {
-                phone: "ao",
-                quality_score: 72,
-                sound_most_like: "ao",
-                annotation: {
-                  correct: false,
-                  comment: "Needs work",
-                  score: 72,
-                },
-              },
-              {
-                phone: "g",
-                quality_score: 93,
-                sound_most_like: "g",
-                annotation: { correct: true, comment: "Good", score: 93 },
-              },
-            ],
-            annotation: { score: 85, correct: true },
-          },
-        ],
-        annotation: { score: 85, correct: true, all_correct: false },
-      },
-    },
   },
   {
     id: 4,
     word: "Bank",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=400&h=400&fit=crop",
+    ],
     category: "object",
     phonemes: ["B", "AE", "NG", "K"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Bank",
-        quality_score: 97,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Bank",
-            quality_score: 97,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "b",
-                quality_score: 89,
-                sound_most_like: "b",
-              },
-              {
-                phone: "ae",
-                quality_score: 100,
-                sound_most_like: "ae",
-              },
-              {
-                phone: "ng",
-                quality_score: 98,
-                sound_most_like: "ng",
-              },
-              {
-                phone: "k",
-                quality_score: 100,
-                sound_most_like: "k",
-              },
-            ],
-          },
-        ],
-        annotation: { score: 97, correct: true, all_correct: true },
-      },
-    },
   },
   {
     id: 5,
     word: "Ball",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1553481187-be93c21490a9?w=400&h=400&fit=crop",
+    ],
     category: "toy",
     phonemes: ["B", "AO", "L"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Ball",
-        quality_score: 68,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Ball",
-            quality_score: 68,
-            quality_class: "fail",
-            phone_score_list: [
-              {
-                phone: "b",
-                quality_score: 85,
-                sound_most_like: "b",
-              },
-              {
-                phone: "ao",
-                quality_score: 45,
-                sound_most_like: "aa",
-              },
-              {
-                phone: "l",
-                quality_score: 74,
-                sound_most_like: "l",
-              },
-            ],
-          },
-        ],
-      },
-    },
   },
   {
     id: 6,
     word: "Fish",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=400&h=400&fit=crop",
+    ],
     category: "animal",
     phonemes: ["F", "IH", "SH"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Fish",
-        quality_score: 91,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Fish",
-            quality_score: 91,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "f",
-                quality_score: 94,
-                sound_most_like: "f",
-              },
-              {
-                phone: "ih",
-                quality_score: 88,
-                sound_most_like: "ih",
-              },
-              {
-                phone: "sh",
-                quality_score: 90,
-                sound_most_like: "sh",
-              },
-            ],
-          },
-        ],
-        annotation: { score: 91, correct: true, all_correct: true },
-      },
-    },
   },
   {
     id: 7,
     word: "Sun",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400&h=400&fit=crop",
+    ],
     category: "nature",
     phonemes: ["S", "AH", "N"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Sun",
-        quality_score: 76,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Sun",
-            quality_score: 76,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "s",
-                quality_score: 60,
-                sound_most_like: "s",
-               
-              },
-              {
-                phone: "ah",
-                quality_score: 82,
-                sound_most_like: "ah",
-              },
-              {
-                phone: "n",
-                quality_score: 86,
-                sound_most_like: "n",
-              },
-            ],
-            annotation: { score: 76, correct: true },
-          },
-        ],
-        annotation: { score: 76, correct: true, all_correct: false },
-      },
-    },
   },
   {
     id: 8,
     word: "Bird",
-    image:
+    images: [
       "https://images.unsplash.com/photo-1444464666168-49d633b86797?w=400&h=400&fit=crop",
+    ],
     category: "animal",
     phonemes: ["B", "ER", "D"],
-    mockResponse: {
-      status: "success",
-      text_score: {
-        text: "Bird",
-        quality_score: 88,
-        fidelity_class: "CORRECT",
-        word_score_list: [
-          {
-            word: "Bird",
-            quality_score: 88,
-            quality_class: "pass",
-            phone_score_list: [
-              {
-                phone: "b",
-                quality_score: 92,
-                sound_most_like: "b",
-              },
-              {
-                phone: "er",
-                quality_score: 80,
-                sound_most_like: "er",
-              },
-              {
-                phone: "d",
-                quality_score: 91,
-                sound_most_like: "d",
-              },
-            ],
-            annotation: { score: 88, correct: true },
-          },
-        ],
-        annotation: { score: 88, correct: true, all_correct: true },
-      },
-    },
+  },
+  {
+    id: 9,
+    word: "Banana",
+    images: [
+      "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop",
+    ],
+    category: "fruit",
+    phonemes: ["B", "AH", "N", "AE", "N", "AH"],
+  },
+  {
+    id: 10,
+    word: "Orange",
+    images: [
+      "https://images.unsplash.com/photo-1547514701-427821017808?w=400&h=400&fit=crop",
+    ],
+    category: "fruit",
+    phonemes: ["AO", "R", "AH", "N", "JH"],
+  },
+  {
+    id: 11,
+    word: "Grapes",
+    images: [
+      "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=400&h=400&fit=crop",
+    ],
+    category: "fruit",
+    phonemes: ["G", "R", "EY", "P", "S"],
   },
 ];
