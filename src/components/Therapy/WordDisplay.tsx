@@ -33,7 +33,7 @@ export default function WordDisplay({ word, image, category, phonemes, score, is
           <img
             src={image}
             alt={word}
-            className="w-44 h-44 object-cover"
+            className="w-64 h-64 max-w-64 max-h-64 object-cover"
           />
           {/* Category chip on image */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
