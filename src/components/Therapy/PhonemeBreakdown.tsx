@@ -1,28 +1,100 @@
 import { motion } from 'framer-motion';
-import type { PhonemeScore } from '@/data/speechTherapyWords';
+import type { PhonemeScore, PhoneScore } from '@/data/speechTherapyWords';
 
 interface PhonemeBreakdownProps {
-  phonemes: PhonemeScore[];
+  phonemes: PhoneScore[];
   wordScore: number;
   isCorrect: string;
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 85) return 'bg-primary-soft text-primary border-primary/30';
-  if (score >= 60) return 'bg-accent-soft text-foreground border-accent/40';
-  return 'bg-accent/20 text-foreground border-destructive/30';
+/**
+ * Official Speechace quality_score rubric:
+ * 90–100 → Green   — Excellent. Native or native-like
+ * 80–90  → Green   — Very good and clearly intelligible
+ * 70–80  → Orange  — Good. Intelligible but with evident mistakes
+ * 60–70  → Red     — Fair. Possibly not intelligible
+ *  0–60  → Red     — Poor and must be reattempted
+ */
+type ScoreTier = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
+
+function getTier(score: number): ScoreTier {
+  if (score >= 90) return 'excellent';
+  if (score >= 80) return 'very-good';
+  if (score >= 70) return 'good';
+  if (score >= 60) return 'fair';
+  return 'poor';
 }
 
-function getScoreDotColor(score: number): string {
-  if (score >= 85) return 'bg-primary';
-  if (score >= 60) return 'bg-accent';
-  return 'bg-destructive';
+const TIER_CONFIG: Record<ScoreTier, {
+  cardClass: string;
+  dotClass: string;
+  badgeClass: string;
+  label: string;
+  description: string;
+}> = {
+  excellent: {
+    cardClass: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+    dotClass: 'bg-emerald-500',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    label: 'Excellent',
+    description: 'Native-like',
+  },
+  'very-good': {
+    cardClass: 'bg-green-50 border-green-200 text-green-900',
+    dotClass: 'bg-green-500',
+    badgeClass: 'bg-green-100 text-green-800 border-green-200',
+    label: 'Very Good',
+    description: 'Clearly intelligible',
+  },
+  good: {
+    cardClass: 'bg-orange-50 border-orange-200 text-orange-900',
+    dotClass: 'bg-orange-400',
+    badgeClass: 'bg-orange-100 text-orange-800 border-orange-200',
+    label: 'Good',
+    description: 'Minor mistakes',
+  },
+  fair: {
+    cardClass: 'bg-red-50 border-red-200 text-red-900',
+    dotClass: 'bg-red-400',
+    badgeClass: 'bg-red-100 text-red-800 border-red-200',
+    label: 'Fair',
+    description: 'Several mistakes',
+  },
+  poor: {
+    cardClass: 'bg-red-50 border-red-300 text-red-900',
+    dotClass: 'bg-red-600',
+    badgeClass: 'bg-red-200 text-red-900 border-red-300',
+    label: 'Poor',
+    description: 'Reattempt needed',
+  },
+};
+
+function getFeedbackTip(score: number, phone: string, soundMostLike: string | undefined): string {
+  const tier = getTier(score);
+  if (tier === 'excellent' || tier === 'very-good') return '';
+  if (soundMostLike && soundMostLike.toLowerCase() !== phone.toLowerCase()) {
+    return `Sounded like "${soundMostLike.toUpperCase()}" — aim for "${phone.toUpperCase()}"`;
+  }
+  if (tier === 'good') return `Refine the "${phone.toUpperCase()}" sound`;
+  if (tier === 'fair') return `Practice "${phone.toUpperCase()}" more carefully`;
+  return `Reattempt the "${phone.toUpperCase()}" sound`;
 }
 
-function getFeedbackText(score: number, phone: string): string {
-  if (score >= 85) return '';
-  if (score >= 60) return `Try the '${phone.toUpperCase()}' sound again`;
-  return `Practice the '${phone.toUpperCase()}' sound more`;
+function WordScoreSummary({ score }: { score: number }) {
+  const tier = getTier(score);
+  const config = TIER_CONFIG[tier];
+  const summaryMessages: Record<ScoreTier, string> = {
+    excellent: '🌟 Excellent — native-like pronunciation!',
+    'very-good': '✅ Very good — clearly intelligible!',
+    good: '🟡 Good — intelligible with a few small mistakes.',
+    fair: '🔴 Fair — several mistakes, keep practicing.',
+    poor: '🔴 Needs reattempting — keep working on it.',
+  };
+  return (
+    <div className={`rounded-xl border px-5 py-3 text-center text-sm font-medium ${config.badgeClass}`}>
+      {summaryMessages[tier]}
+    </div>
+  );
 }
 
 export default function PhonemeBreakdown({ phonemes, wordScore, isCorrect }: PhonemeBreakdownProps) {
@@ -30,62 +102,94 @@ export default function PhonemeBreakdown({ phonemes, wordScore, isCorrect }: Pho
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="space-y-4"
+      transition={{ delay: 0.2, duration: 0.4 }}
+      className="space-y-5"
     >
-      {/* Overall Score Header */}
+      {/* Header row */}
       <div className="flex items-center justify-between">
-        <h3 className="text-therapy-lg text-foreground">Phoneme Breakdown</h3>
-        <div className="flex items-center gap-2">
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+        <h3 className="text-base font-semibold text-foreground tracking-tight">
+          Phoneme Breakdown
+        </h3>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
             isCorrect
-              ? 'bg-primary-soft text-primary'
-              : 'bg-accent/20 text-destructive'
-          }`}>
-            {isCorrect ? '✓ CORRECT' : '✗ NEEDS PRACTICE'}
-          </span>
-        </div>
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-red-200 bg-red-50 text-red-800'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${isCorrect ? 'bg-emerald-500' : 'bg-red-500'}`} />
+          {isCorrect ? 'Correct' : 'Needs Practice'}
+        </span>
       </div>
 
-      {/* Phoneme Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      {/* Phoneme grid */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {phonemes.map((phoneme, index) => {
-          const feedback = getFeedbackText(phoneme.quality_score, phoneme.phone);
+          const tier = getTier(phoneme.quality_score);
+          const config = TIER_CONFIG[tier];
+          const tip = getFeedbackTip(phoneme.quality_score, phoneme.phone, phoneme.sound_most_like);
+
           return (
             <motion.div
               key={`${phoneme.phone}-${index}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 + index * 0.1, type: 'spring', stiffness: 300 }}
-              className={`relative rounded-xl border-2 p-4 text-center ${getScoreColor(phoneme.quality_score)}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.3 + index * 0.07,
+                type: 'spring',
+                stiffness: 280,
+                damping: 22,
+              }}
+              className={`relative flex flex-col items-center gap-2 rounded-2xl border-2 px-3 pb-4 pt-5 text-center ${config.cardClass}`}
             >
-              {/* Score Dot */}
-              <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${getScoreDotColor(phoneme.quality_score)}`} />
+              {/* Score dot */}
+              <span
+                className={`absolute right-3 top-3 h-2 w-2 rounded-full ${config.dotClass}`}
+                aria-hidden="true"
+              />
 
-              {/* Phoneme Label */}
-              <p className="text-2xl font-bold mb-1 uppercase tracking-wide">
+              {/* Phoneme symbol */}
+              <p className="text-3xl font-bold leading-none tracking-widest uppercase">
                 {phoneme.phone}
               </p>
 
               {/* Score */}
-              <p className="text-lg font-semibold mb-1">
-                {Math.round(phoneme.quality_score)}%
+              <p className="text-lg font-semibold leading-none tabular-nums">
+                {Math.round(phoneme.quality_score)}
+                <span className="ml-0.5 text-xs font-medium opacity-60">/ 100</span>
               </p>
 
-              {/* Comment */}
-              <p className="text-xs font-medium opacity-80">
-                {/* {phoneme.annotation.comment} */}
-              </p>
+              {/* Tier label */}
+              <span
+                className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${config.badgeClass}`}
+              >
+                {config.label}
+              </span>
 
-              {/* Feedback tip for low scores */}
-              {feedback && (
+              {/* sound_most_like — shown when it differs from the expected phone */}
+              {phoneme.sound_most_like &&
+                phoneme.sound_most_like.toLowerCase() !== phoneme.phone.toLowerCase() && (
+                  <div className="mt-0.5 flex w-full items-center justify-center gap-1.5 rounded-lg bg-white/60 px-2 py-1.5 text-[11px] font-medium">
+                    <span className="opacity-60">Heard:</span>
+                    <span className="font-bold uppercase tracking-wide">
+                      {phoneme.sound_most_like}
+                    </span>
+                    <span className="opacity-40">→</span>
+                    <span className="font-bold uppercase tracking-wide">
+                      {phoneme.phone}
+                    </span>
+                  </div>
+                )}
+
+              {/* Coaching tip for sub-80 scores */}
+              {tip && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                  className="mt-2 text-xs bg-card/80 rounded-lg px-2 py-1"
+                  transition={{ delay: 0.6 + index * 0.07 }}
+                  className="mt-0.5 text-[11px] leading-snug opacity-75"
                 >
-                  💡 {feedback}
+                  {tip}
                 </motion.p>
               )}
             </motion.div>
@@ -93,20 +197,32 @@ export default function PhonemeBreakdown({ phonemes, wordScore, isCorrect }: Pho
         })}
       </div>
 
-      {/* Overall Feedback */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="rounded-xl bg-secondary/30 p-4 text-center"
-      >
-        <p className="text-foreground font-medium">
-          {wordScore >= 90 ? '🌟 Outstanding! Keep it up!' :
-           wordScore >= 75 ? '🎉 Great job! Almost perfect!' :
-           wordScore >= 60 ? '💪 Good effort! Let\'s practice the highlighted sounds.' :
-           '🤗 Nice try! Let\'s practice together again.'}
+      {/* Score rubric legend */}
+      {/* <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Score guide
         </p>
-      </motion.div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {(
+            [
+              { range: '90–100', color: 'bg-emerald-500', label: 'Excellent' },
+              { range: '80–90', color: 'bg-green-500', label: 'Very Good' },
+              { range: '70–80', color: 'bg-orange-400', label: 'Good' },
+              { range: '60–70', color: 'bg-red-400', label: 'Fair' },
+              { range: '0–60', color: 'bg-red-600', label: 'Poor' },
+            ] as const
+          ).map(({ range, color, label }) => (
+            <div key={range} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className={`h-2 w-2 rounded-full ${color}`} aria-hidden="true" />
+              <span className="tabular-nums">{range}</span>
+              <span className="opacity-60">— {label}</span>
+            </div>
+          ))}
+        </div>
+      </div> */}
+
+      {/* Overall summary */}
+      <WordScoreSummary score={wordScore} />
     </motion.div>
   );
 }

@@ -234,7 +234,7 @@ import { useAIFeedback } from "@/hooks/useAIFeedback";
 import { useToast } from "@/hooks/use-toast";
 
 import { playSuccessSound, playErrorSound } from "@/utils/sounds";
-
+import { useAuth } from "@/hooks/useAuth";
 
 interface AudioControlsProps {
   word: string;
@@ -254,7 +254,7 @@ export default function AudioControls({
 }: AudioControlsProps) {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
-
+  const { user } = useAuth();
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingChild, setIsPlayingChild] = useState(false);
   const [isPlayingRef, setIsPlayingRef] = useState(false);
@@ -264,7 +264,7 @@ export default function AudioControls({
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
   const audioBlobRef = useRef<Blob | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRcef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const { scoreSpeech, isScoring, pronunciationScore, isSuccess } =
@@ -280,33 +280,33 @@ export default function AudioControls({
   }, [word]);
 
   // Step 1: when scoring succeeds → set score + call AI feedback
-  // useEffect(() => {
-  //   if (
-  //     isSuccess &&
-  //     pronunciationScore &&
-  //     Object.keys(pronunciationScore).length > 0
-  //   ) {
-  //     setSpeechPronunciationScore(pronunciationScore);
+  useEffect(() => {
+    if (
+      isSuccess &&
+      pronunciationScore &&
+      Object.keys(pronunciationScore).length > 0
+    ) {
+      setSpeechPronunciationScore(pronunciationScore?.data);
 
-  //     // Build the payload using real score + word metadata
-  //     const feedbackPayload = {
-  //       id: wordData.id,
-  //       word: wordData.word,
-  //       image: wordData.image,
-  //       category: wordData.category,
-  //       phonemes: wordData.phonemes,
-  //       mockResponse: pronunciationScore, // real score from API
-  //     };
+      // Build the payload using real score + word metadata
+      const feedbackPayload = {
+        wordId: wordData._id,
+        attemptId: pronunciationScore?.data.phone_score_list?._id || null, 
+      };
 
-  //     generateFeedback(feedbackPayload, {
-  //       onSuccess: (data) => {
-  //         if (data?.feedback) {
-  //           onFeedbackReady(data.feedback);
-  //         }
-  //       },
-  //     });
-  //   }
-  // }, [isSuccess, pronunciationScore]);
+      generateFeedback(feedbackPayload, {
+        onSuccess: (data) => {
+          if (data?.feedback) {
+            onFeedbackReady(data.feedback);
+          }
+        },
+      });
+    }
+  }, [generateFeedback, isSuccess, onFeedbackReady, pronunciationScore, setSpeechPronunciationScore, wordData._id, wordData.category, wordData.id, wordData.image, wordData.phonemes, wordData.word]);
+
+  useEffect(()=>{
+    console.log("Current user in AudioControls:", user);
+  },[user])
 
   const stopAll = () => {
     mediaRecorderRef.current?.stop();
@@ -378,18 +378,6 @@ export default function AudioControls({
     };
 
     // when Speechace API is ready.
-    // recorder.onstop = async () => {
-    //   const webmBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-    //   const wavBlob = await convertToWav(webmBlob);
-    //   audioBlobRef.current = wavBlob;
-    //   const url = URL.createObjectURL(wavBlob);
-    //   setAudioUrl(url);
-    //   onRecordingComplete();
-
-    //   // ✅ Now actually call the scoring API
-    //   scoreSpeech({ text: word, audio: wavBlob });
-    // };
-
     recorder.onstop = async () => {
       const webmBlob = new Blob(chunksRef.current, { type: "audio/webm" });
       const wavBlob = await convertToWav(webmBlob);
@@ -398,54 +386,67 @@ export default function AudioControls({
       setAudioUrl(url);
       onRecordingComplete();
 
-      // ✅ Use mock response directly (swap scoreSpeech() when API key is ready)
-      const fallbackMock = {
-        text_score: {
-          quality_score: 85,
-          word_score_list: [{
-            quality_score: 85,
-            quality_class: "pass",
-            phone_score_list: wordData.relatedPhoneme?.map((p: string) => ({ phone: p, quality_score: 80 + Math.floor(Math.random() * 20) })) || []
-          }]
-        }
-      };
-      
-      const mockScore = wordData.mockResponse || fallbackMock;
-      setSpeechPronunciationScore(mockScore);
-
-
-      // Play sounds based on score
-      const qualityScore = mockScore?.text_score?.word_score_list?.[0]?.quality_score ?? 0;
-      if (qualityScore >= 70) {
-        playSuccessSound();
-      } else {
-        playErrorSound();
-        toast({
-          title: 'Almost there! 🗣️',
-          description: "Try to say the word a bit more clearly. You can do it!",
-          variant: "destructive"
-        });
-      }
-
-
-      const feedbackPayload = {
-        id: wordData.id,
-        word: wordData.word,
-        image: wordData.image,
-        category: wordData.category,
-        phonemes: wordData.phonemes,
-        mockResponse: mockScore,
-      };
-
-
-      generateFeedback(feedbackPayload, {
-        onSuccess: (data) => {
-          if (data?.feedback) {
-            onFeedbackReady(data.feedback);
-          }
-        },
+      // ✅ Now actually call the scoring API
+      scoreSpeech({
+        word: word,
+        audio: wavBlob,
+        wordId: wordData._id,
       });
     };
+
+    // recorder.onstop = async () => {
+    //   const webmBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+    //   const wavBlob = await convertToWav(webmBlob);
+    //   audioBlobRef.current = wavBlob;
+    //   const url = URL.createObjectURL(wavBlob);
+    //   setAudioUrl(url);
+    //   onRecordingComplete();
+
+    //   // ✅ Use mock response directly (swap scoreSpeech() when API key is ready)
+    //   const fallbackMock = {
+    //     text_score: {
+    //       quality_score: 85,
+    //       word_score_list: [{
+    //         quality_score: 85,
+    //         quality_class: "pass",
+    //         phone_score_list: wordData.relatedPhoneme?.map((p: string) => ({ phone: p, quality_score: 80 + Math.floor(Math.random() * 20) })) || []
+    //       }]
+    //     }
+    //   };
+
+    //   const mockScore = wordData.mockResponse || fallbackMock;
+    //   setSpeechPronunciationScore(mockScore);
+
+    //   // Play sounds based on score
+    //   const qualityScore = mockScore?.text_score?.word_score_list?.[0]?.quality_score ?? 0;
+    //   if (qualityScore >= 70) {
+    //     playSuccessSound();
+    //   } else {
+    //     playErrorSound();
+    //     toast({
+    //       title: 'Almost there! 🗣️',
+    //       description: "Try to say the word a bit more clearly. You can do it!",
+    //       variant: "destructive"
+    //     });
+    //   }
+
+    //   const feedbackPayload = {
+    //     id: wordData.id,
+    //     word: wordData.word,
+    //     image: wordData.image,
+    //     category: wordData.category,
+    //     phonemes: wordData.phonemes,
+    //     mockResponse: mockScore,
+    //   };
+
+    //   generateFeedback(feedbackPayload, {
+    //     onSuccess: (data) => {
+    //       if (data?.feedback) {
+    //         onFeedbackReady(data.feedback);
+    //       }
+    //     },
+    //   });
+    // };
 
     recorder.start();
     setIsRecording(true);

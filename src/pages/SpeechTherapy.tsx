@@ -20,7 +20,7 @@ import {
   ModuleStep,
 } from '@/api/therapy';
 import { useAuth } from '@/hooks/useAuth';
-import { SpeechAPIResponse } from '@/data/speechTherapyWords';
+import { FilteredSpeechAPIResponse } from '@/data/speechTherapyWords';
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -76,6 +76,8 @@ function WordVideoPlayer({ videos, accentColor }: WordVideoPlayerProps) {
   };
 
   if (!videos.length) return null;
+
+ 
 
   return (
     <motion.div
@@ -328,8 +330,8 @@ export default function SpeechTherapy() {
   const [selectedModule, setSelectedModule] = useState<SpeechTherapyModule | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
 
-  const [recordings, setRecordings] = useState<Record<string, SpeechAPIResponse>>({});
-  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<SpeechAPIResponse | null>(null);
+  const [recordings, setRecordings] = useState<Record<string, FilteredSpeechAPIResponse>>({});
+  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<FilteredSpeechAPIResponse | null>(null);
 
   const [feedbackText, setFeedbackText] = useState<string | null>(null);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
@@ -370,7 +372,7 @@ export default function SpeechTherapy() {
 
   const handleRecordingComplete = useCallback(() => {
     if (stepKey) {
-      setRecordings((prev) => ({ ...prev, [stepKey]: {} as SpeechAPIResponse }));
+      setRecordings((prev) => ({ ...prev, [stepKey]: {} as FilteredSpeechAPIResponse }));
     }
   }, [stepKey]);
 
@@ -429,7 +431,9 @@ export default function SpeechTherapy() {
     setRecordings({});
     resetStepState();
   };
-
+  useEffect(()=>{
+    console.log(currentWord)
+  },[currentWord])
   /* ── Loading ───────────────────────────────── */
   if (isLoading) {
     return (
@@ -591,8 +595,8 @@ export default function SpeechTherapy() {
                       image={currentWord.images?.[0]}
                       category={currentWord.category}
                       phonemes={currentWord.phonemes}
-                      score={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_score}
-                      isCorrect={speechPronunciationScore?.text_score?.word_score_list?.[0]?.quality_class}
+                      score={speechPronunciationScore?.quality_score}
+                      isCorrect={speechPronunciationScore?.quality_class}
                     />
 
                     {/* Video player – only if videos exist */}
@@ -617,11 +621,11 @@ export default function SpeechTherapy() {
                       onFeedbackReady={handleFeedbackReady}
                     />
 
-                    {speechPronunciationScore?.text_score?.word_score_list?.[0]?.phone_score_list && (
+                    {speechPronunciationScore?.phone_score_list && (
                       <PhonemeBreakdown
-                        phonemes={speechPronunciationScore.text_score.word_score_list[0].phone_score_list}
-                        wordScore={speechPronunciationScore.text_score.word_score_list[0].quality_score}
-                        isCorrect={speechPronunciationScore.text_score.word_score_list[0].quality_class}
+                        phonemes={speechPronunciationScore.phone_score_list}
+                        wordScore={speechPronunciationScore.quality_score}
+                        isCorrect={speechPronunciationScore.quality_class}
                       />
                     )}
 
