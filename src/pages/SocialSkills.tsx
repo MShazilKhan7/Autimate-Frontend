@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Filter, RotateCcw, Users, Star, ChevronRight, CheckCircle2,
-  Trophy, Sparkles, ArrowRight,
+  Trophy, Sparkles, ArrowRight, Loader2
 } from 'lucide-react';
 import Layout from '@/components/Layout/Layout';
 import TaskCard from '@/components/Social/TaskCard';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import socialTasks from '@/data/socialTasks.json';
 import { useAuth } from '@/hooks/useAuth';
+import { socialAPI, SocialSkill } from '@/api/social';
+import { useQuery } from '@tanstack/react-query';
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -40,6 +41,14 @@ export default function SocialSkills() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Fetch from API
+  const { data: skillsData, isLoading } = useQuery({
+    queryKey: ['social-skills'],
+    queryFn: socialAPI.getAll
+  });
+
+  const socialTasks: SocialSkill[] = skillsData?.data || [];
+
   useEffect(() => {
     if (!isLoggedIn) navigate('/auth');
   }, [isLoggedIn, navigate]);
@@ -50,13 +59,12 @@ export default function SocialSkills() {
       ? socialTasks
       : socialTasks.filter(t => t.category === selectedCategory);
 
-  const isTaskCompleted = (id: number) => completedToday.includes(id.toString());
+  const isTaskCompleted = (id: string) => completedToday.includes(id);
 
-  const handleTaskComplete = (taskId: number) => {
-    const str = taskId.toString();
-    if (!completedToday.includes(str)) {
-      setCompletedToday(p => [...p, str]);
-      const task = socialTasks.find(t => t.id === taskId);
+  const handleTaskComplete = (taskId: string) => {
+    if (!completedToday.includes(taskId)) {
+      setCompletedToday(p => [...p, taskId]);
+      const task = socialTasks.find(t => t._id === taskId);
       toast({ title: '🎉 Great job!', description: `You practiced "${task?.task}". Keep it up!` });
     }
   };
@@ -66,7 +74,7 @@ export default function SocialSkills() {
     toast({ title: 'Session Reset', description: 'Practice all tasks again!' });
   };
 
-  const completedCount = filteredTasks.filter(t => isTaskCompleted(t.id)).length;
+  const completedCount = filteredTasks.filter(t => isTaskCompleted(t._id!)).length;
   const totalCount = filteredTasks.length;
   const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const allDone = completedCount === totalCount && totalCount > 0;
@@ -95,145 +103,154 @@ export default function SocialSkills() {
             </p>
           </motion.div>
 
-          {/* ── Progress + Controls row ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {isLoading ? (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="text-muted-foreground font-medium">Loading social skills...</p>
+            </div>
+          ) : (
+            <>
+              {/* ── Progress + Controls row ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-            {/* Progress card — 2 cols */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-7"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <Star className="w-5 h-5 text-amber-500" />
-                      Today's Progress
-                    </h2>
-                    <span className="text-2xl font-extrabold text-foreground">
-                      {completedCount}
-                      <span className="text-muted-foreground font-normal text-lg">/{totalCount}</span>
-                    </span>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-3 bg-muted/20 rounded-full overflow-hidden mb-2">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
-                      className="h-full rounded-full bg-gradient-to-r from-violet-500 to-primary"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{pct}% complete</span>
-                    {completedCount > 0 && (
-                      <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> {completedCount} done!
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="flex items-center gap-2 rounded-xl border-2 border-muted/40 hover:bg-muted/20 font-semibold flex-shrink-0"
+                {/* Progress card — 2 cols */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-7"
                 >
-                  <RotateCcw className="w-4 h-4" />
-                  Reset
-                </Button>
-              </div>
-            </motion.div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                          <Star className="w-5 h-5 text-amber-500" />
+                          Today's Progress
+                        </h2>
+                        <span className="text-2xl font-extrabold text-foreground">
+                          {completedCount}
+                          <span className="text-muted-foreground font-normal text-lg">/{totalCount}</span>
+                        </span>
+                      </div>
 
-            {/* Stats mini card — 1 col */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-7 text-white shadow-xl shadow-violet-500/20 relative overflow-hidden"
-            >
-              <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10" />
-              <div className="absolute -right-1 -bottom-6 w-16 h-16 rounded-full bg-white/10" />
-              <div className="p-3 bg-white/20 rounded-2xl inline-flex mb-4">
-                <Trophy className="w-6 h-6" />
-              </div>
-              <p className="text-white/80 text-sm font-semibold mb-1">Tasks Available</p>
-              <p className="text-5xl font-extrabold mb-1">{totalCount}</p>
-              <p className="text-white/70 text-xs">in {categories.length - 1} categories</p>
-            </motion.div>
-          </div>
+                      {/* Progress bar */}
+                      <div className="w-full h-3 bg-muted/20 rounded-full overflow-hidden mb-2">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-primary"
+                        />
+                      </div>
 
-          {/* ── Category filter ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-5"
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Filter by Category</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map(cat => {
-                const meta = getMeta(cat);
-                const active = selectedCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 capitalize border-2 ${
-                      active
-                        ? `${meta.bg} ${meta.color} border-transparent shadow-md scale-105`
-                        : 'border-muted/30 text-muted-foreground hover:border-primary/30 hover:text-foreground hover:bg-muted/10'
-                    }`}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{pct}% complete</span>
+                        {completedCount > 0 && (
+                          <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {completedCount} done!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={handleReset}
+                      variant="outline"
+                      className="flex items-center gap-2 rounded-xl border-2 border-muted/40 hover:bg-muted/20 font-semibold flex-shrink-0"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset
+                    </Button>
+                  </div>
+                </motion.div>
+
+                {/* Stats mini card — 1 col */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-7 text-white shadow-xl shadow-violet-500/20 relative overflow-hidden"
+                >
+                  <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10" />
+                  <div className="absolute -right-1 -bottom-6 w-16 h-16 rounded-full bg-white/10" />
+                  <div className="p-3 bg-white/20 rounded-2xl inline-flex mb-4">
+                    <Trophy className="w-6 h-6" />
+                  </div>
+                  <p className="text-white/80 text-sm font-semibold mb-1">Tasks Available</p>
+                  <p className="text-5xl font-extrabold mb-1">{totalCount}</p>
+                  <p className="text-white/70 text-xs">in {categories.length - 1} categories</p>
+                </motion.div>
+              </div>
+
+              {/* ── Category filter ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Filter by Category</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(cat => {
+                    const meta = getMeta(cat);
+                    const active = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 capitalize border-2 ${
+                          active
+                            ? `${meta.bg} ${meta.color} border-transparent shadow-md scale-105`
+                            : 'border-muted/30 text-muted-foreground hover:border-primary/30 hover:text-foreground hover:bg-muted/10'
+                        }`}
+                      >
+                        {active && <div className={`w-2 h-2 rounded-full ${meta.dot}`} />}
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* ── Task Grid ── */}
+              <AnimatePresence mode="wait">
+                {filteredTasks.length === 0 ? (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-16 text-center"
                   >
-                    {active && <div className={`w-2 h-2 rounded-full ${meta.dot}`} />}
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          {/* ── Task Grid ── */}
-          <AnimatePresence mode="wait">
-            {filteredTasks.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl rounded-3xl p-16 text-center"
-              >
-                <div className="text-6xl mb-4">🤔</div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No tasks found</h3>
-                <p className="text-muted-foreground">Try selecting a different category</p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={selectedCategory}
-                variants={stagger}
-                initial="hidden"
-                animate="show"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-              >
-                {filteredTasks.map(task => (
-                  <motion.div key={task.id} variants={fadeUp}>
-                    <TaskCard
-                      task={task}
-                      isCompleted={isTaskCompleted(task.id)}
-                      onComplete={handleTaskComplete}
-                    />
+                    <div className="text-6xl mb-4">🤔</div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">No tasks found</h3>
+                    <p className="text-muted-foreground">Try selecting a different category</p>
                   </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                ) : (
+                  <motion.div
+                    key={selectedCategory}
+                    variants={stagger}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+                  >
+                    {filteredTasks.map(task => (
+                      <motion.div key={task._id} variants={fadeUp}>
+                        <TaskCard
+                          task={task}
+                          isCompleted={isTaskCompleted(task._id!)}
+                          onComplete={() => handleTaskComplete(task._id!)}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
 
           {/* ── All Done Banner ── */}
           <AnimatePresence>

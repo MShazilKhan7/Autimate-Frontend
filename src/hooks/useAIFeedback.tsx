@@ -1,13 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
 import api from "@/utils/api";
 
+// interface AIFeedbackPayload {
+//   id: number;
+//   word: string;
+//   image?: string;
+//   category?: string;
+//   phonemes?: string[];
+//   mockResponse: any;
+// }
+
 interface AIFeedbackPayload {
-  id: number;
-  word: string;
-  image?: string;
-  category?: string;
-  phonemes?: string[];
-  mockResponse: any;
+  wordId: string;
+  attemptId: string | null; // ID of the specific pronunciation attempt, if available
 }
 
 interface AIFeedbackResponse {

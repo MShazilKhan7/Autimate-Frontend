@@ -11,6 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { onboardingAPI } from '@/api/onboarding';
+import { Loader2 } from 'lucide-react';
+
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -85,9 +89,41 @@ export default function Settings() {
   const { isLoggedIn, user, signout, authentication } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [childData, setChildData] = useState({ name: 'John Doe', age: '10' });
+  const [childData, setChildData] = useState({ name: '', age: '' });
   const [saved, setSaved] = useState(false);
+
+  // Fetch Child Info
+  const { isLoading: isLoadingChild } = useQuery({
+    queryKey: ['child-info'],
+    queryFn: async () => {
+      const data = await onboardingAPI.getChildInfo();
+      if (data) {
+        setChildData({ name: data.name, age: data.age });
+      }
+      return data;
+    },
+    enabled: isLoggedIn
+  });
+
+  // Update Child Info Mutation
+  const updateMutation = useMutation({
+    mutationFn: onboardingAPI.updateChildInfo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['child-info'] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      toast({ title: 'Information Updated', description: 'Child information has been successfully updated.' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Update Failed', 
+        description: error.response?.data?.message || 'Something went wrong', 
+        variant: 'destructive' 
+      });
+    }
+  });
 
   useEffect(() => {
     if (!isLoggedIn) navigate('/auth');
@@ -99,15 +135,15 @@ export default function Settings() {
       toast({ title: 'Missing Information', description: 'Please fill in all fields.', variant: 'destructive' });
       return;
     }
-    const age = parseInt(childData.age);
-    if (isNaN(age) || age < 1 || age > 18) {
+    const ageNum = parseInt(childData.age);
+    if (isNaN(ageNum) || ageNum < 1 || ageNum > 18) {
       toast({ title: 'Invalid Age', description: 'Please enter a valid age between 1 and 18.', variant: 'destructive' });
       return;
     }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-    toast({ title: 'Information Updated', description: 'Child information has been successfully updated.' });
+    
+    updateMutation.mutate(childData);
   };
+
 
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all therapy data? This action cannot be undone.')) {
@@ -171,50 +207,63 @@ export default function Settings() {
           {/* Child Info */}
           <motion.div {...fadeUp(0.2)}>
             <Section title="Child Information" icon={Baby} iconColor="bg-violet-100 text-violet-600">
-              <form onSubmit={handleChildUpdate} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="childName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Child's Name
-                    </Label>
-                    <Input
-                      id="childName"
-                      value={childData.name}
-                      onChange={e => setChildData({ ...childData, name: e.target.value })}
-                      className="py-3 rounded-xl bg-muted/10 border-transparent focus:border-primary/40 focus:ring-2 focus:ring-primary/20 transition-all"
-                      placeholder="Enter child's name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="childAge" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Child's Age
-                    </Label>
-                    <Input
-                      id="childAge"
-                      type="number"
-                      min="1" max="18"
-                      value={childData.age}
-                      onChange={e => setChildData({ ...childData, age: e.target.value })}
-                      className="py-3 rounded-xl bg-muted/10 border-transparent focus:border-primary/40 focus:ring-2 focus:ring-primary/20 transition-all"
-                      placeholder="Enter age"
-                    />
-                  </div>
+              {isLoadingChild ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground font-medium">Loading child information...</p>
                 </div>
-                <Button
-                  type="submit"
-                  className={`px-7 py-5 rounded-xl font-semibold shadow-md transition-all duration-300 ${
-                    saved
-                      ? 'bg-emerald-500 hover:bg-emerald-500 text-white'
-                      : 'bg-gradient-to-r from-primary to-primary-soft hover:from-primary/90 hover:to-primary-soft/90 text-primary-foreground shadow-primary/25 hover:-translate-y-0.5'
-                  }`}
-                >
-                  {saved ? (
-                    <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Saved!</span>
-                  ) : 'Update Information'}
-                </Button>
-              </form>
+              ) : (
+                <form onSubmit={handleChildUpdate} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="childName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Child's Name
+                      </Label>
+                      <Input
+                        id="childName"
+                        value={childData.name}
+                        disabled={updateMutation.isPending}
+                        onChange={e => setChildData({ ...childData, name: e.target.value })}
+                        className="py-3 rounded-xl bg-muted/10 border-transparent focus:border-primary/40 focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter child's name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="childAge" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                        Child's Age
+                      </Label>
+                      <Input
+                        id="childAge"
+                        type="number"
+                        min="1" max="18"
+                        disabled={updateMutation.isPending}
+                        value={childData.age}
+                        onChange={e => setChildData({ ...childData, age: e.target.value })}
+                        className="py-3 rounded-xl bg-muted/10 border-transparent focus:border-primary/40 focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter age"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className={`px-7 py-5 rounded-xl font-semibold shadow-md transition-all duration-300 ${
+                      saved
+                        ? 'bg-emerald-500 hover:bg-emerald-500 text-white'
+                        : 'bg-gradient-to-r from-primary to-primary-soft hover:from-primary/90 hover:to-primary-soft/90 text-primary-foreground shadow-primary/25 hover:-translate-y-0.5'
+                    }`}
+                  >
+                    {updateMutation.isPending ? (
+                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Updating...</span>
+                    ) : saved ? (
+                      <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Saved!</span>
+                    ) : 'Update Information'}
+                  </Button>
+                </form>
+              )}
             </Section>
           </motion.div>
+
 
           {/* Preferences */}
           <motion.div {...fadeUp(0.25)}>

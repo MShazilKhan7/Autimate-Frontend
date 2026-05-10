@@ -22,4 +22,9 @@ export const onboardingAPI = {
       console.log("Submit API Response:", data);
       return res.data;
     }),
-};  
+  getChildInfo: async () =>
+    api.get("/api/on-boarding/child-info").then((res) => res.data.data),
+  updateChildInfo: async (data: { name: string; age: string }) =>
+    api.put("/api/on-boarding/child-info", data).then((res) => res.data),
+};
+  

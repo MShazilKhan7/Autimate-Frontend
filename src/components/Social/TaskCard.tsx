@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check, ChevronRight } from 'lucide-react';
 
 interface SocialTask {
-  id: number;
+  _id?: string;
   task: string;
   image: string;
   description: string;
@@ -33,7 +33,7 @@ export default function TaskCard({ task, isCompleted }: TaskCardProps) {
     <motion.div
       whileHover={{ scale: 1.03, y: -4 }}
       whileTap={{ scale: 0.97 }}
-      onClick={() => navigate(`/social/practice/${task.id}`)}
+      onClick={() => navigate(`/social/practice/${task._id}`)}
       className={`relative cursor-pointer rounded-3xl overflow-hidden border transition-all duration-300 group shadow-lg hover:shadow-xl ${
         isCompleted
           ? 'border-emerald-200 bg-emerald-50/80'

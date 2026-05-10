@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import api from "@/utils/api";
+import { ScoreSpeechRequest } from "@/types/speechace";
 
 export function useScoreSpeech() {
   const {
@@ -9,11 +10,12 @@ export function useScoreSpeech() {
     isSuccess,
     isError,
     error: submitError,
-  } = useMutation<any, Error, { text: string; audio: Blob | File }>({
+  } = useMutation<any, Error, ScoreSpeechRequest>({
     mutationFn: async (payload) => {
       const formData = new FormData();
-      formData.append("text", payload.text);
+      formData.append("word", payload.word);
       formData.append("audio", payload.audio);
+      formData.append("wordId", payload.wordId);
 
       const response = await api.post("/api/score-speech", formData, {
         headers: { "Content-Type": "multipart/form-data" },
