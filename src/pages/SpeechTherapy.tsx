@@ -1,26 +1,40 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronLeft, ChevronRight, RotateCcw, Home,
-  Mic, Sparkles, Volume2, Loader2, CheckCircle2, ArrowRight, Layers,
-  Play, Pause, RefreshCw, VideoOff,
-} from 'lucide-react';
-import { Pill } from '@/components/ui/badge';
-import Layout from '@/components/Layout/Layout';
-import WordDisplay from '@/components/Therapy/WordDisplay';
-import AudioControls from '@/components/Therapy/AudioControls';
-import PhonemeBreakdown from '@/components/Therapy/PhonemeBreakdown';
-import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Home,
+  Mic,
+  Sparkles,
+  Volume2,
+  Loader2,
+  CheckCircle2,
+  ArrowRight,
+  Layers,
+  Play,
+  Pause,
+  RefreshCw,
+  VideoOff,
+} from "lucide-react";
+import { Pill } from "@/components/ui/badge";
+import Layout from "@/components/Layout/Layout";
+import WordDisplay from "@/components/Therapy/WordDisplay";
+import AudioControls from "@/components/Therapy/AudioControls";
+import PhonemeBreakdown from "@/components/Therapy/PhonemeBreakdown";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import {
   therapyModulesAPI,
   SpeechTherapyModule,
   SpeechTherapyWord,
   ModuleStep,
-} from '@/api/therapy';
-import { useAuth } from '@/hooks/useAuth';
-import { FilteredSpeechAPIResponse } from '@/data/speechTherapyWords';
+} from "@/api/therapy";
+import { useAuth } from "@/hooks/useAuth";
+import { FilteredSpeechAPIResponse } from "@/data/speechTherapyWords";
+import { useSession } from "@/hooks/useSession";
+import { set } from "date-fns";
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -28,7 +42,7 @@ import { FilteredSpeechAPIResponse } from '@/data/speechTherapyWords';
 
 function resolveWord(step: ModuleStep): SpeechTherapyWord | null {
   if (!step.wordId) return null;
-  if (typeof step.wordId === 'object') return step.wordId as SpeechTherapyWord;
+  if (typeof step.wordId === "object") return step.wordId as SpeechTherapyWord;
   return null;
 }
 
@@ -77,8 +91,6 @@ function WordVideoPlayer({ videos, accentColor }: WordVideoPlayerProps) {
 
   if (!videos.length) return null;
 
- 
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -89,7 +101,6 @@ function WordVideoPlayer({ videos, accentColor }: WordVideoPlayerProps) {
       <div className="relative w-full max-w-[240px]">
         {/* Reel Container */}
         <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-2xl aspect-[9/16]">
-          
           {/* Video */}
           {!hasError ? (
             <>
@@ -189,8 +200,8 @@ function WordVideoPlayer({ videos, accentColor }: WordVideoPlayerProps) {
                   {isPlaying
                     ? "Playing..."
                     : isLoaded
-                    ? "Tap video"
-                    : "Loading..."}
+                      ? "Tap video"
+                      : "Loading..."}
                 </div>
 
                 {/* Dots */}
@@ -231,7 +242,11 @@ interface ModuleSelectorProps {
   onSelect: (mod: SpeechTherapyModule) => void;
 }
 
-function ModuleSelector({ modules, completedModules, onSelect }: ModuleSelectorProps) {
+function ModuleSelector({
+  modules,
+  completedModules,
+  onSelect,
+}: ModuleSelectorProps) {
   return (
     <div className="space-y-5">
       <div className="mb-2">
@@ -284,7 +299,8 @@ function ModuleSelector({ modules, completedModules, onSelect }: ModuleSelectorP
 
                 <div className="mt-3 flex items-center gap-3">
                   <Pill className="bg-slate-100 text-slate-600">
-                    <Layers className="h-2.5 w-2.5 mr-1" />{mod.steps.length} steps
+                    <Layers className="h-2.5 w-2.5 mr-1" />
+                    {mod.steps.length} steps
                   </Pill>
                 </div>
               </div>
@@ -307,17 +323,17 @@ function ModuleSelector({ modules, completedModules, onSelect }: ModuleSelectorP
    Step Type Badge
 ───────────────────────────────────────────── */
 const STEP_TYPE_LABELS: Record<string, string> = {
-  imitation: 'Imitation',
-  expressive: 'Expressive',
-  phoneme: 'Phoneme',
-  checkpoint: 'Checkpoint',
+  imitation: "Imitation",
+  expressive: "Expressive",
+  phoneme: "Phoneme",
+  checkpoint: "Checkpoint",
 };
 
 const STEP_TYPE_COLORS: Record<string, string> = {
-  imitation: 'bg-sky-100 text-sky-700',
-  expressive: 'bg-violet-100 text-violet-700',
-  phoneme: 'bg-amber-100 text-amber-700',
-  checkpoint: 'bg-emerald-100 text-emerald-700',
+  imitation: "bg-sky-100 text-sky-700",
+  expressive: "bg-violet-100 text-violet-700",
+  phoneme: "bg-amber-100 text-amber-700",
+  checkpoint: "bg-emerald-100 text-emerald-700",
 };
 
 /* ─────────────────────────────────────────────
@@ -327,24 +343,31 @@ export default function SpeechTherapy() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
 
-  const [selectedModule, setSelectedModule] = useState<SpeechTherapyModule | null>(null);
+  const [selectedModule, setSelectedModule] =
+    useState<SpeechTherapyModule | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
 
-  const [recordings, setRecordings] = useState<Record<string, FilteredSpeechAPIResponse>>({});
-  const [speechPronunciationScore, setSpeechPronunciationScore] = useState<FilteredSpeechAPIResponse | null>(null);
+  const [recordings, setRecordings] = useState<
+    Record<string, FilteredSpeechAPIResponse>
+  >({});
+  const [speechPronunciationScore, setSpeechPronunciationScore] =
+    useState<FilteredSpeechAPIResponse | null>(null);
 
   const [feedbackText, setFeedbackText] = useState<string | null>(null);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
   const feedbackUtterRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
+  const [completedModules, setCompletedModules] = useState<Set<string>>(
+    new Set(),
+  );
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!isLoggedIn) navigate('/auth');
+    if (!isLoggedIn) navigate("/auth");
   }, [isLoggedIn, navigate]);
 
   const { data: modulesData, isLoading } = useQuery<SpeechTherapyModule[]>({
-    queryKey: ['speech-therapy-modules'],
+    queryKey: ["speech-therapy-modules"],
     queryFn: () => therapyModulesAPI.getAll().then((res) => res.data ?? res),
   });
 
@@ -352,16 +375,21 @@ export default function SpeechTherapy() {
 
   const steps: ModuleStep[] = selectedModule?.steps ?? [];
   const currentStep: ModuleStep | undefined = steps[stepIndex];
-  const currentWord: SpeechTherapyWord | null = currentStep ? resolveWord(currentStep) : null;
+  const currentWord: SpeechTherapyWord | null = currentStep
+    ? resolveWord(currentStep)
+    : null;
 
   const stepKey = currentStep?._id ?? `${selectedModule?._id}-${stepIndex}`;
   const currentRecording = stepKey ? recordings[stepKey] : null;
   const hasRecording = !!currentRecording;
 
-  const progressPct = steps.length > 0 ? ((stepIndex + 1) / steps.length) * 100 : 0;
+  const progressPct =
+    steps.length > 0 ? ((stepIndex + 1) / steps.length) * 100 : 0;
   const completedCount = Object.keys(recordings).length;
 
-  const hasVideos = !!(currentWord?.videos?.length);
+  const hasVideos = !!currentWord?.videos?.length;
+
+  const { session, isSessionLoading } = useSession(user?.id, currentWord?._id);
 
   /* ── Callbacks ─────────────────────────────── */
   const resetStepState = useCallback(() => {
@@ -372,7 +400,10 @@ export default function SpeechTherapy() {
 
   const handleRecordingComplete = useCallback(() => {
     if (stepKey) {
-      setRecordings((prev) => ({ ...prev, [stepKey]: {} as FilteredSpeechAPIResponse }));
+      setRecordings((prev) => ({
+        ...prev,
+        [stepKey]: {} as FilteredSpeechAPIResponse,
+      }));
     }
   }, [stepKey]);
 
@@ -389,7 +420,10 @@ export default function SpeechTherapy() {
     utter.volume = 1;
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(
-      (v) => v.name.includes('Google') || v.name.includes('Samantha') || v.lang === 'en-US'
+      (v) =>
+        v.name.includes("Google") ||
+        v.name.includes("Samantha") ||
+        v.lang === "en-US",
     );
     if (preferred) utter.voice = preferred;
     utter.onstart = () => setIsPlayingFeedback(true);
@@ -399,7 +433,9 @@ export default function SpeechTherapy() {
     window.speechSynthesis.speak(utter);
   };
 
-  const replayFeedback = () => { if (feedbackText) playFeedbackTTS(feedbackText); };
+  const replayFeedback = () => {
+    if (session) playFeedbackTTS(feedbackText);
+  };
 
   const goNext = useCallback(() => {
     if (stepIndex < steps.length - 1) {
@@ -417,7 +453,11 @@ export default function SpeechTherapy() {
 
   const resetCurrent = useCallback(() => {
     if (stepKey) {
-      setRecordings((prev) => { const n = { ...prev }; delete n[stepKey]; return n; });
+      setRecordings((prev) => {
+        const n = { ...prev };
+        delete n[stepKey];
+        return n;
+      });
     }
     resetStepState();
   }, [stepKey, resetStepState]);
@@ -431,9 +471,12 @@ export default function SpeechTherapy() {
     setRecordings({});
     resetStepState();
   };
-  useEffect(()=>{
-    console.log(currentWord)
-  },[currentWord])
+  
+  useEffect(() => {
+    setSpeechPronunciationScore(session?.attempts?.[session.attempts.length - 1] ?? null);
+    setFeedbackText(session?.attempts?.[session.attempts.length - 1]?.llmFeedback ?? null);
+  }, [session]);
+
   /* ── Loading ───────────────────────────────── */
   if (isLoading) {
     return (
@@ -450,7 +493,9 @@ export default function SpeechTherapy() {
       <Layout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <p className="text-muted-foreground">No therapy modules found.</p>
-          <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+          <Button onClick={() => navigate("/dashboard")}>
+            Back to Dashboard
+          </Button>
         </div>
       </Layout>
     );
@@ -466,7 +511,12 @@ export default function SpeechTherapy() {
           </div>
           <div className="relative z-10 p-6 md:p-8 mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2 rounded-xl hover:bg-muted/30 font-semibold">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                className="gap-2 rounded-xl hover:bg-muted/30 font-semibold"
+              >
                 <Home className="w-4 h-4" /> Dashboard
               </Button>
               <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -476,7 +526,12 @@ export default function SpeechTherapy() {
             <ModuleSelector
               modules={modules}
               completedModules={completedModules}
-              onSelect={(mod) => { setSelectedModule(mod); setStepIndex(0); setRecordings({}); resetStepState(); }}
+              onSelect={(mod) => {
+                setSelectedModule(mod);
+                setStepIndex(0);
+                setRecordings({});
+                resetStepState();
+              }}
             />
           </div>
         </div>
@@ -489,7 +544,9 @@ export default function SpeechTherapy() {
       <Layout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <p className="text-muted-foreground">This module has no steps.</p>
-          <Button onClick={() => setSelectedModule(null)}>Back to Modules</Button>
+          <Button onClick={() => setSelectedModule(null)}>
+            Back to Modules
+          </Button>
         </div>
       </Layout>
     );
@@ -508,11 +565,11 @@ export default function SpeechTherapy() {
         </div>
 
         <div className="relative z-10 p-6 md:p-8 max-w-5xl mx-auto">
-
           {/* Header */}
           <div className="flex items-center justify-between mb-7">
             <Button
-              variant="ghost" size="sm"
+              variant="ghost"
+              size="sm"
               onClick={() => setSelectedModule(null)}
               className="gap-2 rounded-xl hover:bg-muted/30 font-semibold"
             >
@@ -527,7 +584,10 @@ export default function SpeechTherapy() {
                 {selectedModule.title}
               </div>
               <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow rounded-full px-4 py-1.5 text-sm font-bold text-foreground">
-                {stepIndex + 1} <span className="text-muted-foreground font-normal">/ {steps.length}</span>
+                {stepIndex + 1}{" "}
+                <span className="text-muted-foreground font-normal">
+                  / {steps.length}
+                </span>
               </div>
             </div>
           </div>
@@ -535,30 +595,41 @@ export default function SpeechTherapy() {
           {/* Progress */}
           <div className="mb-7">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-              <span>{completedCount} of {steps.length} steps completed</span>
-              <span className="font-bold" style={{ color: accentColor }}>{Math.round(progressPct)}%</span>
+              <span>
+                {completedCount} of {steps.length} steps completed
+              </span>
+              <span className="font-bold" style={{ color: accentColor }}>
+                {Math.round(progressPct)}%
+              </span>
             </div>
             <div className="w-full h-2.5 bg-muted/20 rounded-full overflow-hidden">
               <motion.div
                 animate={{ width: `${progressPct}%` }}
                 transition={{ duration: 0.5 }}
                 className="h-full rounded-full"
-                style={{ background: `linear-gradient(to right, ${accentColor}, ${selectedModule.colorLight})` }}
+                style={{
+                  background: `linear-gradient(to right, ${accentColor}, ${selectedModule.colorLight})`,
+                }}
               />
             </div>
             <div className="flex justify-center gap-1.5 mt-3">
               {steps.map((s, i) => (
                 <button
                   key={s._id ?? i}
-                  onClick={() => { setStepIndex(i); resetStepState(); }}
+                  onClick={() => {
+                    setStepIndex(i);
+                    resetStepState();
+                  }}
                   className={`transition-all duration-200 rounded-full ${
                     i === stepIndex
-                      ? 'w-5 h-2.5'
+                      ? "w-5 h-2.5"
                       : recordings[s._id ?? `${selectedModule._id}-${i}`]
-                      ? 'w-2.5 h-2.5 bg-emerald-400'
-                      : 'w-2.5 h-2.5 bg-muted/40 hover:bg-muted'
+                        ? "w-2.5 h-2.5 bg-emerald-400"
+                        : "w-2.5 h-2.5 bg-muted/40 hover:bg-muted"
                   }`}
-                  style={i === stepIndex ? { background: accentColor } : undefined}
+                  style={
+                    i === stepIndex ? { background: accentColor } : undefined
+                  }
                 />
               ))}
             </div>
@@ -566,13 +637,19 @@ export default function SpeechTherapy() {
 
           {/* Step type + phase label */}
           <div className="flex items-center gap-2 mb-4">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STEP_TYPE_COLORS[currentStep.type] ?? 'bg-muted/30 text-muted-foreground'}`}>
+            <span
+              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STEP_TYPE_COLORS[currentStep.type] ?? "bg-muted/30 text-muted-foreground"}`}
+            >
               {STEP_TYPE_LABELS[currentStep.type] ?? currentStep.type}
             </span>
             {currentStep.phase && (
-              <span className="text-xs text-muted-foreground">{currentStep.phase}</span>
+              <span className="text-xs text-muted-foreground">
+                {currentStep.phase}
+              </span>
             )}
-            <span className="ml-auto text-sm font-semibold text-foreground">{currentStep.title}</span>
+            <span className="ml-auto text-sm font-semibold text-foreground">
+              {currentStep.title}
+            </span>
           </div>
 
           {/* Main Card */}
@@ -586,8 +663,9 @@ export default function SpeechTherapy() {
               className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl shadow-black/5 rounded-3xl p-8 md:p-10"
             >
               {currentWord ? (
-                <div className={`grid gap-10 items-start ${hasVideos ? 'md:grid-cols-[1fr_1.2fr]' : 'md:grid-cols-2'}`}>
-
+                <div
+                  className={`grid gap-10 items-start ${hasVideos ? "md:grid-cols-[1fr_1.2fr]" : "md:grid-cols-2"}`}
+                >
                   {/* Left – word visual + video */}
                   <div className="flex flex-col items-center gap-5">
                     <WordDisplay
@@ -639,11 +717,16 @@ export default function SpeechTherapy() {
                           className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3"
                         >
                           <div className="flex-1">
-                            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">AI Feedback</p>
-                            <p className="text-sm text-foreground leading-relaxed">{feedbackText}</p>
+                            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
+                              AI Feedback
+                            </p>
+                            <p className="text-sm text-foreground leading-relaxed">
+                              {feedbackText}
+                            </p>
                           </div>
                           <Button
-                            variant="ghost" size="sm"
+                            variant="ghost"
+                            size="sm"
                             onClick={replayFeedback}
                             disabled={isPlayingFeedback}
                             className="rounded-xl shrink-0 text-primary hover:bg-primary/10"
@@ -655,9 +738,14 @@ export default function SpeechTherapy() {
                     </AnimatePresence>
 
                     {hasRecording && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-center"
+                      >
                         <Button
-                          variant="ghost" size="sm"
+                          variant="ghost"
+                          size="sm"
                           onClick={resetCurrent}
                           className="gap-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30"
                         >
@@ -670,10 +758,14 @@ export default function SpeechTherapy() {
               ) : (
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                   <span className="text-5xl">{selectedModule.emoji}</span>
-                  <h3 className="text-xl font-bold text-foreground">{currentStep.title}</h3>
+                  <h3 className="text-xl font-bold text-foreground">
+                    {currentStep.title}
+                  </h3>
                   <p className="text-sm text-muted-foreground max-w-xs">
-                    This step is a <strong>{STEP_TYPE_LABELS[currentStep.type]}</strong> in the <em>{currentStep.phase}</em> phase.
-                    There is no word assigned to this step.
+                    This step is a{" "}
+                    <strong>{STEP_TYPE_LABELS[currentStep.type]}</strong> in the{" "}
+                    <em>{currentStep.phase}</em> phase. There is no word
+                    assigned to this step.
                   </p>
                 </div>
               )}
@@ -710,7 +802,6 @@ export default function SpeechTherapy() {
               </Button>
             )}
           </div>
-
         </div>
       </div>
     </Layout>

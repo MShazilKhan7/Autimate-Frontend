@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { playSuccessSound, playErrorSound } from "@/utils/sounds";
 import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "@/hooks/useSession";
 
 interface AudioControlsProps {
   word: string;
@@ -27,7 +28,6 @@ export default function AudioControls({
 }: AudioControlsProps) {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
-  const { user } = useAuth();
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingChild, setIsPlayingChild] = useState(false);
   const [isPlayingRef, setIsPlayingRef] = useState(false);
@@ -39,9 +39,12 @@ export default function AudioControls({
   const audioBlobRef = useRef<Blob | null>(null);
   const audioRcef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { user } = useAuth();
 
-  const { scoreSpeech, isScoring, pronunciationScore, isSuccess } =
-    useScoreSpeech();
+  const { scoreSpeech, isScoring, pronunciationScore, isSuccess } = useSession(
+    user?.id,
+    wordData._id,
+  );
   const { generateFeedback, isGenerating } = useAIFeedback();
 
   // Cleanup on unmount or word change
@@ -59,12 +62,12 @@ export default function AudioControls({
       pronunciationScore &&
       Object.keys(pronunciationScore).length > 0
     ) {
-      setSpeechPronunciationScore(pronunciationScore?.data);
+      // setSpeechPronunciationScore(pronunciationScore?.data);
 
       // Build the payload using real score + word metadata
       const feedbackPayload = {
         wordId: wordData._id,
-        attemptId: pronunciationScore?.data.phone_score_list?._id || null, 
+        attemptId: pronunciationScore?.data.phone_score_list?._id || null,
       };
 
       generateFeedback(feedbackPayload, {
@@ -75,11 +78,23 @@ export default function AudioControls({
         },
       });
     }
-  }, [generateFeedback, isSuccess, onFeedbackReady, pronunciationScore, setSpeechPronunciationScore, wordData._id, wordData.category, wordData.id, wordData.image, wordData.phonemes, wordData.word]);
+  }, [
+    generateFeedback,
+    isSuccess,
+    onFeedbackReady,
+    pronunciationScore,
+    setSpeechPronunciationScore,
+    wordData._id,
+    wordData.category,
+    wordData.id,
+    wordData.image,
+    wordData.phonemes,
+    wordData.word,
+  ]);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("Current user in AudioControls:", user);
-  },[user])
+  }, [user]);
 
   const stopAll = () => {
     mediaRecorderRef.current?.stop();
