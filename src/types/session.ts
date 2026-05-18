@@ -17,6 +17,7 @@ export interface Attempt {
 }
 
 export interface Session {
+  hasReport: boolean;
   _id: string;
   userId: string;
   wordId: string;

@@ -21,7 +21,7 @@ function getTier(score: number): ScoreTier {
   if (score >= 90) return 'excellent';
   if (score >= 80) return 'very-good';
   if (score >= 70) return 'good';
-  if (score >= 60) return 'fair';
+  if (score >= 60) return 'fair'; 
   return 'poor';
 }
 

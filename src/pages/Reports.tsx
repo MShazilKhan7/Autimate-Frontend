@@ -1,216 +1,23 @@
 import Layout from "@/components/Layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { useReport } from "@/hooks/useReport";
 import { useSession } from "@/hooks/useSession";
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceLine,
+  ResponsiveContainer,
+} from "recharts";
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
-const MOCK_SESSIONS = [
-  {
-    _id: "s1",
-    userId: "user123",
-    wordId: "w1",
-    word: "Apple",
-    hasReport: false,
-    createdAt: "2025-05-01T10:00:00Z",
-    updatedAt: "2025-05-10T12:00:00Z",
-    attempts: [
-      {
-        _id: "a1",
-        word: "Apple",
-        quality_score: 72,
-        quality_class: "Good",
-        llmFeedback:
-          "Great effort! Your pronunciation of 'Apple' is improving. Focus on the 'pp' consonant cluster in the middle — try pressing your lips firmly together.",
-        createdAt: "2025-05-01T10:05:00Z",
-        phone_score_list: [
-          { phone: "AE", quality_score: 85, sound_most_like: "AE" },
-          { phone: "P", quality_score: 60, sound_most_like: "B" },
-          { phone: "AH", quality_score: 78, sound_most_like: "AH" },
-          { phone: "L", quality_score: 70, sound_most_like: "L" },
-        ],
-      },
-      {
-        _id: "a2",
-        word: "Apple",
-        quality_score: 84,
-        quality_class: "Excellent",
-        llmFeedback:
-          "Wonderful improvement! The 'AE' vowel sound at the start is now very clear. Keep up this great work!",
-        createdAt: "2025-05-05T11:00:00Z",
-        phone_score_list: [
-          { phone: "AE", quality_score: 92, sound_most_like: "AE" },
-          { phone: "P", quality_score: 75, sound_most_like: "P" },
-          { phone: "AH", quality_score: 88, sound_most_like: "AH" },
-          { phone: "L", quality_score: 82, sound_most_like: "L" },
-        ],
-      },
-      {
-        _id: "a3",
-        word: "Apple",
-        quality_score: 91,
-        quality_class: "Excellent",
-        llmFeedback:
-          "Outstanding! Almost perfect pronunciation. The 'L' sound at the end can be softened slightly.",
-        createdAt: "2025-05-10T09:30:00Z",
-        phone_score_list: [
-          { phone: "AE", quality_score: 95, sound_most_like: "AE" },
-          { phone: "P", quality_score: 88, sound_most_like: "P" },
-          { phone: "AH", quality_score: 92, sound_most_like: "AH" },
-          { phone: "L", quality_score: 89, sound_most_like: "L" },
-        ],
-      },
-    ],
-  },
-  {
-    _id: "s2",
-    userId: "user123",
-    wordId: "w2",
-    word: "Butterfly",
-    hasReport: true,
-    createdAt: "2025-05-02T14:00:00Z",
-    updatedAt: "2025-05-11T16:00:00Z",
-    attempts: [
-      {
-        _id: "a4",
-        word: "Butterfly",
-        quality_score: 55,
-        quality_class: "Needs Practice",
-        llmFeedback:
-          "Good try! 'Butterfly' is a complex word. Focus on the 'B' sound at the beginning — close your lips and release a short burst of air.",
-        createdAt: "2025-05-02T14:10:00Z",
-        phone_score_list: [
-          { phone: "B", quality_score: 50, sound_most_like: "P" },
-          { phone: "AH", quality_score: 70, sound_most_like: "AH" },
-          { phone: "T", quality_score: 60, sound_most_like: "D" },
-          { phone: "ER", quality_score: 45, sound_most_like: "AH" },
-          { phone: "F", quality_score: 65, sound_most_like: "V" },
-          { phone: "L", quality_score: 55, sound_most_like: "L" },
-          { phone: "IY", quality_score: 72, sound_most_like: "IY" },
-        ],
-      },
-      {
-        _id: "a5",
-        word: "Butterfly",
-        quality_score: 68,
-        quality_class: "Good",
-        llmFeedback:
-          "Much better! The 'B' sound improved significantly. Now let's work on the 'ER' vowel — try making a soft growling sound in the back of your throat.",
-        createdAt: "2025-05-08T10:30:00Z",
-        phone_score_list: [
-          { phone: "B", quality_score: 74, sound_most_like: "B" },
-          { phone: "AH", quality_score: 78, sound_most_like: "AH" },
-          { phone: "T", quality_score: 70, sound_most_like: "T" },
-          { phone: "ER", quality_score: 55, sound_most_like: "AH" },
-          { phone: "F", quality_score: 72, sound_most_like: "F" },
-          { phone: "L", quality_score: 68, sound_most_like: "L" },
-          { phone: "IY", quality_score: 80, sound_most_like: "IY" },
-        ],
-      },
-    ],
-  },
-  {
-    _id: "s3",
-    userId: "user123",
-    wordId: "w3",
-    word: "Rainbow",
-    hasReport: false,
-    createdAt: "2025-05-03T09:00:00Z",
-    updatedAt: "2025-05-09T11:00:00Z",
-    attempts: [
-      {
-        _id: "a6",
-        word: "Rainbow",
-        quality_score: 88,
-        quality_class: "Excellent",
-        llmFeedback:
-          "Excellent work on 'Rainbow'! The 'R' sound was very well produced. Keep practicing!",
-        createdAt: "2025-05-03T09:15:00Z",
-        phone_score_list: [
-          { phone: "R", quality_score: 90, sound_most_like: "R" },
-          { phone: "EY", quality_score: 88, sound_most_like: "EY" },
-          { phone: "N", quality_score: 85, sound_most_like: "N" },
-          { phone: "B", quality_score: 87, sound_most_like: "B" },
-          { phone: "OW", quality_score: 91, sound_most_like: "OW" },
-        ],
-      },
-    ],
-  },
-  {
-    _id: "s4",
-    userId: "user123",
-    wordId: "w4",
-    word: "Elephant",
-    hasReport: false,
-    createdAt: "2025-05-04T13:00:00Z",
-    updatedAt: "2025-05-12T14:00:00Z",
-    attempts: [
-      {
-        _id: "a7",
-        word: "Elephant",
-        quality_score: 62,
-        quality_class: "Good",
-        llmFeedback:
-          "Nice job! The 'EH' vowel at the start was clear. The 'PH' sound (pronounced as 'F') needs more practice — place your upper teeth gently on your lower lip.",
-        createdAt: "2025-05-04T13:05:00Z",
-        phone_score_list: [
-          { phone: "EH", quality_score: 80, sound_most_like: "EH" },
-          { phone: "L", quality_score: 65, sound_most_like: "L" },
-          { phone: "AH", quality_score: 70, sound_most_like: "AH" },
-          { phone: "F", quality_score: 50, sound_most_like: "V" },
-          { phone: "AH", quality_score: 68, sound_most_like: "AH" },
-          { phone: "N", quality_score: 72, sound_most_like: "N" },
-          { phone: "T", quality_score: 60, sound_most_like: "D" },
-        ],
-      },
-      {
-        _id: "a8",
-        word: "Elephant",
-        quality_score: 75,
-        quality_class: "Good",
-        llmFeedback:
-          "Good progress! The 'F' sound is getting better. Practice by blowing gently through your front teeth.",
-        createdAt: "2025-05-12T14:00:00Z",
-        phone_score_list: [
-          { phone: "EH", quality_score: 85, sound_most_like: "EH" },
-          { phone: "L", quality_score: 72, sound_most_like: "L" },
-          { phone: "AH", quality_score: 75, sound_most_like: "AH" },
-          { phone: "F", quality_score: 68, sound_most_like: "F" },
-          { phone: "AH", quality_score: 74, sound_most_like: "AH" },
-          { phone: "N", quality_score: 80, sound_most_like: "N" },
-          { phone: "T", quality_score: 71, sound_most_like: "T" },
-        ],
-      },
-    ],
-  },
-  {
-    _id: "s5",
-    userId: "user123",
-    wordId: "w5",
-    word: "Star",
-    hasReport: true,
-    createdAt: "2025-05-05T08:00:00Z",
-    updatedAt: "2025-05-07T09:00:00Z",
-    attempts: [
-      {
-        _id: "a9",
-        word: "Star",
-        quality_score: 95,
-        quality_class: "Excellent",
-        llmFeedback:
-          "Perfect! 'Star' was pronounced beautifully. Every phoneme was accurate and clear!",
-        createdAt: "2025-05-07T09:00:00Z",
-        phone_score_list: [
-          { phone: "S", quality_score: 96, sound_most_like: "S" },
-          { phone: "T", quality_score: 94, sound_most_like: "T" },
-          { phone: "AA", quality_score: 97, sound_most_like: "AA" },
-          { phone: "R", quality_score: 93, sound_most_like: "R" },
-        ],
-      },
-    ],
-  },
-];
+// ─── API Base (adjust to your env) ───────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const scoreColor = (score) => {
   if (score >= 85) return "#10b981";
   if (score >= 70) return "#f59e0b";
@@ -219,7 +26,7 @@ const scoreColor = (score) => {
 };
 
 const avgScore = (attempts) =>
-  attempts.length
+  attempts?.length
     ? Math.round(
         attempts.reduce((s, a) => s + a.quality_score, 0) / attempts.length,
       )
@@ -231,6 +38,40 @@ const formatDate = (d) =>
     day: "numeric",
     year: "numeric",
   });
+
+const RATING_META = {
+  excellent: {
+    label: "Excellent",
+    color: "#10b981",
+    bg: "rgba(16,185,129,0.1)",
+    border: "rgba(16,185,129,0.3)",
+  },
+  good: {
+    label: "Good",
+    color: "#f59e0b",
+    bg: "rgba(245,158,11,0.1)",
+    border: "rgba(245,158,11,0.3)",
+  },
+  developing: {
+    label: "Developing",
+    color: "#f97316",
+    bg: "rgba(249,115,22,0.1)",
+    border: "rgba(249,115,22,0.3)",
+  },
+  needs_support: {
+    label: "Needs Support",
+    color: "#ef4444",
+    bg: "rgba(239,68,68,0.1)",
+    border: "rgba(239,68,68,0.3)",
+  },
+};
+
+const STATUS_META = {
+  mastered: { color: "#10b981", label: "Mastered" },
+  improving: { color: "#f59e0b", label: "Improving" },
+  needs_practice: { color: "#f97316", label: "Needs Practice" },
+  struggling: { color: "#ef4444", label: "Struggling" },
+};
 
 // ─── ScoreRing ────────────────────────────────────────────────────────────────
 function ScoreRing({ score, size = 50, stroke = 4 }) {
@@ -465,7 +306,6 @@ function AttemptCard({ attempt, index }) {
           ▾
         </div>
       </div>
-
       {expanded && (
         <div style={{ padding: "0 14px 14px", borderTop: "1px solid #f1f5f9" }}>
           <div
@@ -528,6 +368,736 @@ function AttemptCard({ attempt, index }) {
   );
 }
 
+// ─── Custom Chart Tooltip ─────────────────────────────────────────────────────
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const score = payload[0].value;
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 10,
+        padding: "8px 12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      }}
+    >
+      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 3 }}>
+        Attempt {label}
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor(score) }}>
+        {score}
+      </div>
+      <div style={{ fontSize: 11, color: "#94a3b8" }}>/ 100</div>
+    </div>
+  );
+}
+
+// ─── Report Modal ─────────────────────────────────────────────────────────────
+function ReportModal({ report, session, onClose }) {
+  const printRef = useRef(null);
+
+  const handleDownloadPDF = () => {
+    const content = printRef.current;
+    if (!content) return;
+    const printWindow = window.open("", "_blank", "width=800,height=900");
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Report – ${report.word}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Inter', sans-serif; color: #0f172a; background: #fff; padding: 40px; }
+          h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+          h2 { font-size: 14px; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 10px; }
+          p  { font-size: 14px; line-height: 1.7; color: #475569; }
+          .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+          .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; }
+          .card .val { font-size: 24px; font-weight: 800; }
+          .card .lbl { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+          ul { padding-left: 18px; }
+          li { font-size: 14px; color: #475569; margin-bottom: 6px; line-height: 1.5; }
+          .encourage { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+          .footer { margin-top: 32px; font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+          .timeline { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin: 12px 0; }
+          .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+          .bar-fill { width: 100%; border-radius: 4px 4px 0 0; }
+          .bar-lbl { font-size: 10px; color: #94a3b8; }
+        </style>
+      </head>
+      <body>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-size:11px;color:#7c3aed;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Progress Report</span>
+        </div>
+        <h1>"${report.word}"</h1>
+        <p style="color:#94a3b8;font-size:13px;margin-top:4px">Generated ${formatDate(report.generatedAt)}</p>
+
+        <h2>Summary</h2>
+        <div class="grid">
+          <div class="card"><div class="val">${report.metrics.averageScore}</div><div class="lbl">Avg Score</div></div>
+          <div class="card"><div class="val">${report.metrics.bestScore}</div><div class="lbl">Best Score</div></div>
+          <div class="card"><div class="val">${report.metrics.totalAttempts}</div><div class="lbl">Attempts</div></div>
+        </div>
+
+        <h2>Score Timeline</h2>
+        <div class="timeline">
+          ${report.attemptTimeline
+            .map((a) => {
+              const h = Math.round((a.qualityScore / 100) * 64);
+              return `<div class="bar">
+              <div style="font-size:11px;font-weight:700;color:${scoreColor(a.qualityScore)}">${a.qualityScore}</div>
+              <div class="bar-fill" style="height:${h}px;background:${scoreColor(a.qualityScore)};opacity:0.85;min-height:4px"></div>
+              <div class="bar-lbl">#${a.attemptNumber}</div>
+            </div>`;
+            })
+            .join("")}
+        </div>
+
+        <h2>Overall Feedback</h2>
+        <p>${report.llmReport.overallFeedback}</p>
+
+        <h2>Strengths</h2>
+        <ul>${report.llmReport.strengths.map((s) => `<li>${s}</li>`).join("")}</ul>
+
+        <h2>Areas to Improve</h2>
+        <ul>${report.llmReport.areasToImprove.map((s) => `<li>${s}</li>`).join("")}</ul>
+
+        <h2>Practice Exercises</h2>
+        <ul>${report.llmReport.practiceExercises.map((s) => `<li>${s}</li>`).join("")}</ul>
+
+        ${report.llmReport.therapistNotes ? `<h2>Therapist Notes</h2><p>${report.llmReport.therapistNotes}</p>` : ""}
+
+        <h2>Message for ${report.word} Star ⭐</h2>
+        <div class="encourage"><p>${report.llmReport.encouragement}</p></div>
+
+        <div class="footer">Speech Therapy Progress Report · ${new Date().getFullYear()}</div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 600);
+  };
+
+  if (!report) return null;
+  const rating = RATING_META[report.overallRating] ?? RATING_META.good;
+
+  // Chart data
+  const chartData = report.attemptTimeline.map((a) => ({
+    name: `#${a.attemptNumber}`,
+    score: a.qualityScore,
+  }));
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+        background: "rgba(15,23,42,0.5)",
+        backdropFilter: "blur(6px)",
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: 640,
+          background: "#fff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 20,
+          overflow: "hidden",
+          maxHeight: "92vh",
+          overflowY: "auto",
+        }}
+      >
+        {/* ── Header ── */}
+        <div
+          style={{
+            padding: "22px 24px 16px",
+            borderBottom: "1px solid #f1f5f9",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#7c3aed",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: 4,
+              }}
+            >
+              Progress Report
+            </div>
+            <div
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: "#0f172a",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              "{report.word}"
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: rating.bg,
+                border: `1px solid ${rating.border}`,
+                borderRadius: 99,
+                padding: "3px 10px",
+              }}
+            >
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: rating.color,
+                }}
+              />
+              <span
+                style={{ fontSize: 11, fontWeight: 700, color: rating.color }}
+              >
+                {rating.label}
+              </span>
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            <button
+              onClick={handleDownloadPDF}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 9,
+                fontSize: 12,
+                fontWeight: 600,
+                background: "linear-gradient(135deg, #8b5cf6, #9333ea)",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              ⬇ Download PDF
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                color: "#64748b",
+                cursor: "pointer",
+                fontSize: 18,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* ── Printable body ── */}
+        <div ref={printRef} style={{ padding: "20px 24px" }}>
+          {/* Summary grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 10,
+              marginBottom: 22,
+            }}
+          >
+            {[
+              {
+                emoji: "📊",
+                label: "Avg Score",
+                value: report.metrics.averageScore,
+              },
+              {
+                emoji: "🏆",
+                label: "Best Score",
+                value: report.metrics.bestScore,
+              },
+              {
+                emoji: "🔄",
+                label: "Attempts",
+                value: report.metrics.totalAttempts,
+              },
+              {
+                emoji: "📈",
+                label: "Progress",
+                value: `${report.metrics.overallProgress >= 0 ? "+" : ""}${report.metrics.overallProgress}`,
+              },
+              {
+                emoji: "🎯",
+                label: "Consistency",
+                value: report.metrics.consistencyScore,
+              },
+              {
+                emoji: "✅",
+                label: "Mastered",
+                value: `${report.metrics.masteredPhonemes} phones`,
+              },
+            ].map((s, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#fafafa",
+                  border: "1px solid #f1f5f9",
+                  borderRadius: 12,
+                  padding: "14px 10px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{s.emoji}</div>
+                <div
+                  style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}
+                >
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Progress Chart */}
+          <div style={{ marginBottom: 22 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#94a3b8",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: 12,
+              }}
+            >
+              Score Progression
+            </div>
+            <div
+              style={{
+                background: "#fafafa",
+                border: "1px solid #f1f5f9",
+                borderRadius: 12,
+                padding: "16px 8px 8px",
+              }}
+            >
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 4, right: 16, bottom: 0, left: -24 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <ReferenceLine
+                    y={85}
+                    stroke="#10b981"
+                    strokeDasharray="4 3"
+                    strokeWidth={1.5}
+                    label={{
+                      value: "85 – Target",
+                      position: "right",
+                      fontSize: 10,
+                      fill: "#10b981",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#8b5cf6"
+                    strokeWidth={2.5}
+                    dot={(props) => {
+                      const { cx, cy, payload } = props;
+                      const c = scoreColor(payload.score);
+                      return (
+                        <circle
+                          key={cx}
+                          cx={cx}
+                          cy={cy}
+                          r={5}
+                          fill={c}
+                          stroke="#fff"
+                          strokeWidth={2}
+                        />
+                      );
+                    }}
+                    activeDot={{
+                      r: 7,
+                      fill: "#8b5cf6",
+                      stroke: "#fff",
+                      strokeWidth: 2,
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Phoneme Breakdown */}
+          {report.phonemeBreakdown?.length > 0 && (
+            <div style={{ marginBottom: 22 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#94a3b8",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  marginBottom: 12,
+                }}
+              >
+                Phoneme Analysis
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {report.phonemeBreakdown.map((p, i) => {
+                  const st =
+                    STATUS_META[p.status] ?? STATUS_META.needs_practice;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        background: "#fafafa",
+                        border: "1px solid #f1f5f9",
+                        borderRadius: 10,
+                        padding: "9px 12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 38,
+                          fontFamily: "'DM Mono', monospace",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#94a3b8",
+                          background: "#f1f5f9",
+                          borderRadius: 5,
+                          padding: "2px 4px",
+                          textAlign: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        /{p.phone}/
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            height: 6,
+                            background: "#f1f5f9",
+                            borderRadius: 99,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${p.avgScore}%`,
+                              background: scoreColor(p.avgScore),
+                              borderRadius: 99,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: scoreColor(p.avgScore),
+                          width: 28,
+                          textAlign: "right",
+                        }}
+                      >
+                        {p.avgScore}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 10,
+                            padding: "2px 7px",
+                            borderRadius: 99,
+                            fontWeight: 600,
+                            color: st.color,
+                            background: `${st.color}18`,
+                            border: `1px solid ${st.color}44`,
+                          }}
+                        >
+                          {st.label}
+                        </span>
+                        {p.trend !== 0 && (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: p.trend > 0 ? "#10b981" : "#ef4444",
+                            }}
+                          >
+                            {p.trend > 0 ? "▲" : "▼"}
+                            {Math.abs(p.trend)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* LLM Sections */}
+          {report.llmReport?.overallFeedback && (
+            <Section title="Overall Feedback" emoji="💬">
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "#475569",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                {report.llmReport.overallFeedback}
+              </p>
+            </Section>
+          )}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+              margin: "16px 0",
+            }}
+          >
+            {report.llmReport?.strengths?.length > 0 && (
+              <BulletSection
+                title="Strengths"
+                emoji="💪"
+                items={report.llmReport.strengths}
+                color="#10b981"
+              />
+            )}
+            {report.llmReport?.areasToImprove?.length > 0 && (
+              <BulletSection
+                title="Areas to Improve"
+                emoji="🎯"
+                items={report.llmReport.areasToImprove}
+                color="#f59e0b"
+              />
+            )}
+          </div>
+
+          {report.llmReport?.practiceExercises?.length > 0 && (
+            <BulletSection
+              title="Practice Exercises"
+              emoji="🏋️"
+              items={report.llmReport.practiceExercises}
+              color="#8b5cf6"
+            />
+          )}
+
+          {report.llmReport?.therapistNotes && (
+            <Section title="Therapist Notes" emoji="🩺">
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#475569",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                {report.llmReport.therapistNotes}
+              </p>
+            </Section>
+          )}
+
+          {report.llmReport?.encouragement && (
+            <div
+              style={{
+                background: "rgba(139,92,246,0.06)",
+                border: "1px solid rgba(139,92,246,0.2)",
+                borderRadius: 12,
+                padding: "16px 18px",
+                marginTop: 16,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: "#7c3aed",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                ⭐ Message for the Child
+              </div>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "#475569",
+                  lineHeight: 1.7,
+                  margin: 0,
+                  fontStyle: "italic",
+                }}
+              >
+                {report.llmReport.encouragement}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "0 24px 20px",
+            textAlign: "center",
+            fontSize: 12,
+            color: "#94a3b8",
+          }}
+        >
+          Generated on {formatDate(report.generatedAt)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Small layout helpers used in ReportModal ──────────────────────────────────
+function Section({ title, emoji, children }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#94a3b8",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          marginBottom: 10,
+        }}
+      >
+        {emoji} {title}
+      </div>
+      <div
+        style={{
+          background: "#fafafa",
+          border: "1px solid #f1f5f9",
+          borderRadius: 12,
+          padding: "14px 16px",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function BulletSection({ title, emoji, items, color }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#94a3b8",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          marginBottom: 10,
+        }}
+      >
+        {emoji} {title}
+      </div>
+      <div
+        style={{
+          background: "#fafafa",
+          border: "1px solid #f1f5f9",
+          borderRadius: 12,
+          padding: "12px 14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}
+      >
+        {items.map((item, i) => (
+          <div
+            key={i}
+            style={{ display: "flex", gap: 8, alignItems: "flex-start" }}
+          >
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: color,
+                flexShrink: 0,
+                marginTop: 5,
+              }}
+            />
+            <span style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+              {item}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── WordCard ─────────────────────────────────────────────────────────────────
 function WordCard({ session, onGenerate, onViewReport }) {
   const [expanded, setExpanded] = useState(false);
@@ -550,11 +1120,12 @@ function WordCard({ session, onGenerate, onViewReport }) {
 
   const handleGenerate = async () => {
     setGenerating(true);
-    await onGenerate(session._id);
-    setTimeout(() => {
-      setGenerating(false);
+    try {
+      await onGenerate(session._id);
       setHasReport(true);
-    }, 2000);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -681,7 +1252,7 @@ function WordCard({ session, onGenerate, onViewReport }) {
                   (e.currentTarget.style.background = "rgba(139,92,246,0.1)")
                 }
               >
-                📄 View
+                📄 View Report
               </button>
             </>
           ) : (
@@ -760,14 +1331,7 @@ function WordCard({ session, onGenerate, onViewReport }) {
               borderRight: i < 2 ? "1px solid #f1f5f9" : "none",
             }}
           >
-            <div
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: stat.color,
-                fontFamily: "Inter, sans-serif",
-              }}
-            >
+            <div style={{ fontSize: 15, fontWeight: 700, color: stat.color }}>
               {stat.value}
             </div>
             <div
@@ -816,300 +1380,104 @@ function WordCard({ session, onGenerate, onViewReport }) {
   );
 }
 
-// ─── Report Modal ─────────────────────────────────────────────────────────────
-function ReportModal({ session, onClose }) {
-  if (!session) return null;
-  const av = avgScore(session.attempts);
-  const best = session.attempts.reduce(
-    (b, a) => (a.quality_score > b ? a.quality_score : b),
-    0,
-  );
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
-        background: "rgba(15,23,42,0.45)",
-        backdropFilter: "blur(6px)",
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "relative",
-          zIndex: 1,
-          width: "100%",
-          maxWidth: 580,
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          overflow: "hidden",
-          maxHeight: "90vh",
-          overflowY: "auto",
-        }}
-      >
-        {/* Modal Header */}
-        <div
-          style={{
-            padding: "22px 24px 18px",
-            borderBottom: "1px solid #f1f5f9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#7c3aed",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                marginBottom: 4,
-              }}
-            >
-              Progress Report
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                color: "#0f172a",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              "{session.word}"
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: "50%",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              color: "#64748b",
-              cursor: "pointer",
-              fontSize: 18,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Summary */}
-        <div style={{ padding: "20px 24px" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 10,
-              marginBottom: 22,
-            }}
-          >
-            {[
-              { emoji: "📊", label: "Avg. Score", value: av },
-              { emoji: "🏆", label: "Best Score", value: best },
-              {
-                emoji: "🔄",
-                label: "Attempts",
-                value: session.attempts.length,
-              },
-            ].map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "#fafafa",
-                  border: "1px solid #f1f5f9",
-                  borderRadius: 12,
-                  padding: "14px 10px",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: 20, marginBottom: 5 }}>{s.emoji}</div>
-                <div
-                  style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}
-                >
-                  {s.value}
-                </div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Progress Timeline */}
-          <div style={{ marginBottom: 22 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#94a3b8",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              Score Progression
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                gap: 7,
-                height: 80,
-              }}
-            >
-              {session.attempts.map((att, i) => {
-                const h = Math.round((att.quality_score / 100) * 66);
-                const color = scoreColor(att.quality_score);
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 3,
-                    }}
-                  >
-                    <div style={{ fontSize: 11, color, fontWeight: 700 }}>
-                      {att.quality_score}
-                    </div>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: h,
-                        background: color,
-                        borderRadius: "4px 4px 0 0",
-                        opacity: 0.85,
-                        minHeight: 4,
-                        transition: "height 0.6s ease",
-                      }}
-                    />
-                    <div style={{ fontSize: 10, color: "#94a3b8" }}>
-                      #{i + 1}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Latest Feedback */}
-          {session.attempts.at(-1)?.llmFeedback && (
-            <div
-              style={{
-                background: "rgba(139,92,246,0.06)",
-                border: "1px solid rgba(139,92,246,0.18)",
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: "#7c3aed",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  marginBottom: 8,
-                }}
-              >
-                Latest AI Feedback
-              </div>
-              <p
-                style={{
-                  fontSize: 14,
-                  color: "#475569",
-                  lineHeight: 1.7,
-                  margin: 0,
-                }}
-              >
-                {session.attempts.at(-1).llmFeedback}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            padding: "0 24px 22px",
-            textAlign: "center",
-            fontSize: 12,
-            color: "#94a3b8",
-          }}
-        >
-          Generated on{" "}
-          {new Date().toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function SpeechTherapyReports() {
+export default function Reports() {
   const { user } = useAuth();
+
   const { userSessions: sessions, isUserSessionsLoading } = useSession(
     user?.id,
   );
-  // const [sessions, setSessions] = useState(MOCK_SESSIONS);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [reportModal, setReportModal] = useState(null);
-  const [toast, setToast] = useState(null);
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+  const [toast, setToast] = useState<{
+    msg: string;
+    error?: boolean;
+  } | null>(null);
+
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
+
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  const {
+    report,
+    isReportLoading,
+    generateReport,
+  } = useReport(selectedSessionId || undefined, user?.id);
+
+  const showToast = (msg: string, error = false) => {
+    setToast({ msg, error });
+
+    setTimeout(() => setToast(null), 3500);
   };
 
-  const handleGenerate = async (sessionId) => {
-    // await new Promise((r) => setTimeout(r, 2000));
-    // setSessions((prev) =>
-    //   prev.map((s) => (s._id === sessionId ? { ...s, hasReport: true } : s)),
-    // );
-    showToast("Report generated successfully!");
+  // ────────────────────────────────────────────────────────────────────────────
+  // GENERATE REPORT
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const handleGenerate = async (sessionId: string) => {
+    try {
+      await generateReport(sessionId);
+
+      showToast("Report generated successfully!");
+    } catch (err: any) {
+      showToast(err.message || "Failed to generate report", true);
+
+      throw err;
+    }
   };
 
-  const handleViewReport = (sessionId) => {
-    setReportModal(sessions?.find((x) => x._id === sessionId));
+  // ────────────────────────────────────────────────────────────────────────────
+  // VIEW REPORT
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const handleViewReport = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+
+    setReportModalOpen(true);
   };
 
-  const filtered = sessions.filter((s) => {
-    const matchSearch = s.word.toLowerCase().includes(search.toLowerCase());
-    const matchFilter =
-      filter === "all" ||
-      (filter === "reported" && s.hasReport) ||
-      (filter === "pending" && !s.hasReport);
-    return matchSearch && matchFilter;
-  });
 
-  const totalAttempts = sessions.reduce((n, s) => n + s.attempts.length, 0);
-  const reportedCount = sessions.filter((s) => s.hasReport).length;
-  const overallAvg = Math.round(
-    sessions.reduce((s, sess) => s + avgScore(sess.attempts), 0) /
-      sessions.length,
+  const safeSessions = sessions ?? [];
+
+  const filtered = useMemo(() => {
+    return safeSessions.filter((s) => {
+      const matchSearch = s.word
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+      const matchFilter =
+        filter === "all" ||
+        (filter === "reported" && s.hasReport) ||
+        (filter === "pending" && !s.hasReport);
+
+      return matchSearch && matchFilter;
+    });
+  }, [safeSessions, search, filter]);
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // STATS
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const totalAttempts = safeSessions.reduce(
+    (n, s) => n + s.attempts.length,
+    0,
+  );
+
+  const reportedCount = safeSessions.filter((s) => s.hasReport).length;
+
+  const overallAvg = safeSessions.length
+    ? Math.round(
+        safeSessions.reduce((s, sess) => s + avgScore(sess.attempts), 0) /
+          safeSessions.length,
+      )
+    : 0;
+
+  const selectedSession = sessions?.find(
+    (x) => x._id === selectedSessionId,
   );
 
   return (
@@ -1123,13 +1491,43 @@ export default function SpeechTherapyReports() {
         }}
       >
         <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;600&display=swap');
-        * { box-sizing: border-box; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
-      `}</style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;600&display=swap');
+
+          * {
+            box-sizing: border-box;
+          }
+
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          @keyframes toastIn {
+            from {
+              opacity: 0;
+              transform: translateY(12px);
+            }
+
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          ::-webkit-scrollbar {
+            width: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 99px;
+          }
+        `}</style>
 
         <div style={{ maxWidth: "100%", padding: "24px 16px" }}>
           {/* Header */}
@@ -1150,6 +1548,7 @@ export default function SpeechTherapyReports() {
                   background: "#8b5cf6",
                 }}
               />
+
               <span
                 style={{
                   fontSize: 11,
@@ -1162,6 +1561,7 @@ export default function SpeechTherapyReports() {
                 Speech Reports
               </span>
             </div>
+
             <h1
               style={{
                 fontSize: 28,
@@ -1173,12 +1573,19 @@ export default function SpeechTherapyReports() {
             >
               Word Progress
             </h1>
-            <p style={{ fontSize: 14, color: "#94a3b8", margin: 0 }}>
+
+            <p
+              style={{
+                fontSize: 14,
+                color: "#94a3b8",
+                margin: 0,
+              }}
+            >
               Track pronunciation exercises, attempts, and reports
             </p>
           </div>
 
-          {/* Stats Bar */}
+          {/* Stats */}
           <div
             style={{
               display: "grid",
@@ -1188,13 +1595,28 @@ export default function SpeechTherapyReports() {
             }}
           >
             {[
-              { emoji: "🗣️", label: "Words Practiced", value: sessions.length },
-              { emoji: "🔁", label: "Total Attempts", value: totalAttempts },
-              { emoji: "⭐", label: "Avg. Score", value: overallAvg },
+              {
+                emoji: "🗣️",
+                label: "Words Practiced",
+                value: safeSessions.length,
+              },
+
+              {
+                emoji: "🔁",
+                label: "Total Attempts",
+                value: totalAttempts,
+              },
+
+              {
+                emoji: "⭐",
+                label: "Avg. Score",
+                value: overallAvg,
+              },
+
               {
                 emoji: "📋",
                 label: "Reports Done",
-                value: `${reportedCount}/${sessions.length}`,
+                value: `${reportedCount}/${safeSessions.length}`,
               },
             ].map((s, i) => (
               <div
@@ -1206,13 +1628,27 @@ export default function SpeechTherapyReports() {
                   padding: "14px 12px",
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 6 }}>{s.emoji}</div>
+                <div style={{ fontSize: 18, marginBottom: 6 }}>
+                  {s.emoji}
+                </div>
+
                 <div
-                  style={{ fontSize: 20, fontWeight: 700, color: "#0f172a" }}
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                  }}
                 >
                   {s.value}
                 </div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#94a3b8",
+                    marginTop: 2,
+                  }}
+                >
                   {s.label}
                 </div>
               </div>
@@ -1220,8 +1656,19 @@ export default function SpeechTherapyReports() {
           </div>
 
           {/* Search + Filter */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-            <div style={{ flex: 1, position: "relative" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginBottom: 18,
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                position: "relative",
+              }}
+            >
               <span
                 style={{
                   position: "absolute",
@@ -1234,6 +1681,7 @@ export default function SpeechTherapyReports() {
               >
                 🔍
               </span>
+
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -1247,13 +1695,10 @@ export default function SpeechTherapyReports() {
                   color: "#1e293b",
                   fontSize: 13,
                   outline: "none",
-                  fontFamily: "Inter, sans-serif",
-                  transition: "border-color 0.15s",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#8b5cf6")}
-                onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
               />
             </div>
+
             <div style={{ display: "flex", gap: 6 }}>
               {["all", "reported", "pending"].map((f) => (
                 <button
@@ -1264,12 +1709,24 @@ export default function SpeechTherapyReports() {
                     borderRadius: 10,
                     fontSize: 12,
                     fontWeight: 600,
-                    background: filter === f ? "rgba(139,92,246,0.1)" : "#fff",
-                    color: filter === f ? "#7c3aed" : "#94a3b8",
-                    border: `1px solid ${filter === f ? "rgba(139,92,246,0.35)" : "#e2e8f0"}`,
+                    background:
+                      filter === f
+                        ? "rgba(139,92,246,0.1)"
+                        : "#fff",
+
+                    color:
+                      filter === f
+                        ? "#7c3aed"
+                        : "#94a3b8",
+
+                    border: `1px solid ${
+                      filter === f
+                        ? "rgba(139,92,246,0.35)"
+                        : "#e2e8f0"
+                    }`,
+
                     cursor: "pointer",
                     textTransform: "capitalize",
-                    transition: "all 0.15s",
                   }}
                 >
                   {f}
@@ -1278,37 +1735,87 @@ export default function SpeechTherapyReports() {
             </div>
           </div>
 
-          {/* Word Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {filtered.length === 0 ? (
+          {/* Loading */}
+          {isUserSessionsLoading && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "50px 0",
+                color: "#94a3b8",
+              }}
+            >
               <div
                 style={{
-                  textAlign: "center",
-                  padding: "50px 0",
-                  color: "#94a3b8",
+                  fontSize: 30,
+                  marginBottom: 10,
+                  animation: "spin 1s linear infinite",
+                  display: "inline-block",
                 }}
               >
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🔍</div>
-                <div style={{ fontSize: 15 }}>No words match your search.</div>
+                ⟳
               </div>
-            ) : (
-              filtered.map((session) => (
-                <WordCard
-                  key={session._id}
-                  session={session}
-                  onGenerate={handleGenerate}
-                  onViewReport={handleViewReport}
-                />
-              ))
-            )}
-          </div>
+
+              <div style={{ fontSize: 14 }}>
+                Loading sessions…
+              </div>
+            </div>
+          )}
+
+          {/* Word Cards */}
+          {!isUserSessionsLoading && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              {filtered.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "50px 0",
+                    color: "#94a3b8",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 36,
+                      marginBottom: 10,
+                    }}
+                  >
+                    🔍
+                  </div>
+
+                  <div style={{ fontSize: 15 }}>
+                    No words match your search.
+                  </div>
+                </div>
+              ) : (
+                filtered.map((session) => (
+                  <WordCard
+                    key={session._id}
+                    session={session}
+                    onGenerate={handleGenerate}
+                    onViewReport={handleViewReport}
+                  />
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Report Modal */}
-        {reportModal && (
+        {reportModalOpen && (
           <ReportModal
-            session={reportModal}
-            onClose={() => setReportModal(null)}
+            report={report}
+            session={selectedSession}
+            isLoading={isReportLoading}
+            onClose={() => {
+              setReportModalOpen(false);
+
+              setSelectedSessionId(null);
+            }}
           />
         )}
 
@@ -1321,7 +1828,11 @@ export default function SpeechTherapyReports() {
               left: "50%",
               transform: "translateX(-50%)",
               background: "#fff",
-              border: "1px solid #e2e8f0",
+              border: `1px solid ${
+                toast.error
+                  ? "#fecaca"
+                  : "#e2e8f0"
+              }`,
               borderRadius: 12,
               padding: "11px 18px",
               display: "flex",
@@ -1330,12 +1841,23 @@ export default function SpeechTherapyReports() {
               boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
               animation: "toastIn 0.3s ease",
               zIndex: 100,
-              whiteSpace: "nowrap",
             }}
           >
-            <span style={{ fontSize: 16 }}>✅</span>
-            <span style={{ fontSize: 13, color: "#0f172a", fontWeight: 600 }}>
-              {toast}
+            <span style={{ fontSize: 16 }}>
+              {toast.error ? "❌" : "✅"}
+            </span>
+
+            <span
+              style={{
+                fontSize: 13,
+                color: toast.error
+                  ? "#dc2626"
+                  : "#0f172a",
+
+                fontWeight: 600,
+              }}
+            >
+              {toast.msg}
             </span>
           </div>
         )}
