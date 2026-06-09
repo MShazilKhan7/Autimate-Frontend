@@ -17,6 +17,8 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AuthLayout from "./components/Layout/AuthLayout";
 import Onboarding2 from "./pages/Onboarding2";
+import ModulesPage from "./pages/SpeechTherapy";
+import StepPage from "./pages/stepPage";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +36,11 @@ const App = () => (
           <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/child-info" element={<ChildInfo />} />
-            <Route path="/therapy" element={<SpeechTherapy />} />
+            {/* Speech Therapy Routes */}
+            <Route path="/therapy" element={<ModulesPage />} />
+            <Route path="/therapy/:moduleId/steps/:stepIndex" element={<StepPage />}/>
+            <Route path="/therapy/:moduleId" element={<StepPage />} />
+
             <Route path="/speech-space" element={<SpeechSpace />} />
             <Route path="/social" element={<SocialSkills />} />
             <Route path="/social/practice/:taskId" element={<SocialSkillsPractice />} />

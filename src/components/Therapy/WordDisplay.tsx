@@ -3,17 +3,17 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface WordDisplayProps {
   word: string;
-  image: string;
+  images: string[] | string;
   category: string;
   phonemes: string[];
   score?: number;
   isCorrect?: string;
 }
 
-export default function WordDisplay({ word, image, category, phonemes, score, isCorrect }: WordDisplayProps) {
+export default function WordDisplay({ word, images, category, phonemes, score, isCorrect }: WordDisplayProps) {
   const hasScore = score !== undefined;
   const isGood = isCorrect && isCorrect !== 'bad';
-
+  const image = Array.isArray(images) ? images[0] : images;
   return (
     <div className="flex flex-col items-center text-center space-y-5">
       {/* Image */}
@@ -35,10 +35,6 @@ export default function WordDisplay({ word, image, category, phonemes, score, is
             alt={word}
             className="w-64 h-64 max-w-64 max-h-64 object-cover"
           />
-          {/* Category chip on image */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
-            <span className="text-white text-xs font-bold capitalize tracking-wide">{category}</span>
-          </div>
         </div>
       </motion.div>
 
