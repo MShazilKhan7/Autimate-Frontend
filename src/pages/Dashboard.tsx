@@ -150,7 +150,7 @@ function QuickAction({
 export default function Dashboard() {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
-  const firstName = user?.firstName || 'Friend';
+  const firstName = user?.fullName;
 
   useEffect(() => {
     if (!isLoggedIn) navigate('/auth');

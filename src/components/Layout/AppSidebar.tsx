@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -26,24 +27,30 @@ export function AppSidebar() {
   const location = useLocation();
   const { signout, authentication, user } = useAuth();
   const isCollapsed = state === 'collapsed';
-  const initials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() : 'A';
-  const fullName = user ? `${user.firstName} ${user.lastName}` : 'User';
+  const fullName = user ? user.fullName : 'Autimate User';
+  const initials = fullName
+  .trim()
+  .split(/\s+/)
+  .slice(0, 2) // take first two words only
+  .map(word => word.charAt(0).toUpperCase())
+  .join("");
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent className="bg-white/90 backdrop-blur-xl border-r border-white/60 shadow-xl flex flex-col">
         {/* Logo area */}
-        <div className={`flex items-center gap-3 px-5 py-5 border-b border-muted/20 ${isCollapsed ? 'justify-center px-3' : ''}`}>
-          <div className="p-2 bg-gradient-to-br from-primary to-primary-soft rounded-xl shadow-md flex-shrink-0">
+        <div className={`flex items-center gap-2 px-5 py-5 border-b border-muted/20 ${isCollapsed ? 'justify-center px-3' : ''}`}>
+          {/* <div className="p-2 bg-gradient-to-br from-primary to-primary-soft rounded-xl shadow-md flex-shrink-0">
             <Brain className="w-5 h-5 text-white" />
-          </div>
+          </div> */}
+          <img src="/autimate_logo_icon.svg" alt="Autimate Logo" className="h-8 w-8 flex-shrink-0" />
           {!isCollapsed && (
             <span className="text-xl font-extrabold text-foreground tracking-tight">Autimate</span>
           )}
         </div>
 
         {/* Nav items */}
-        <SidebarGroup className="flex-1 py-4">
+        <SidebarGroup className={cn("flex-1 py-4", !isCollapsed && "px-2")}>
           {!isCollapsed && (
             <p className="px-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
               Navigation
@@ -96,7 +103,7 @@ export function AppSidebar() {
             </div>
           )}
           <button
-            onClick={() => signout({ refresh_token: authentication.refreshToken })}
+            onClick={() => signout()}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-left transition-all duration-200 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 group ${isCollapsed ? 'justify-center' : ''}`}
           >
             <LogOut className="h-4 w-4 flex-shrink-0 group-hover:scale-110 transition-transform" />

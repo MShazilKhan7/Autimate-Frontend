@@ -153,8 +153,13 @@ export default function Settings() {
     }
   };
 
-  const fullName = user ? `${user.firstName} ${user.lastName}` : 'User';
-  const initials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() : 'A';
+  const fullName = user ? user.fullName : 'Autimate User';
+  const initials = fullName
+  .trim()
+  .split(/\s+/)
+  .slice(0, 2) // take first two words only
+  .map(word => word.charAt(0).toUpperCase())
+  .join("");
 
   return (
     <Layout>
