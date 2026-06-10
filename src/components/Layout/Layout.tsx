@@ -22,7 +22,13 @@ export default function Layout({ children }: LayoutProps) {
   const { user, isUserLoading } = useAuth();
   const location = useLocation();
   const pageTitle = pageTitles[location.pathname] ?? 'Autimate';
-  const initials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() : 'A';
+  const fullName = user ? user.fullName : 'Autimate User';
+  const initials = fullName
+  .trim()
+  .split(/\s+/)
+  .slice(0, 2) // take first two words only
+  .map(word => word.charAt(0).toUpperCase())
+  .join("");
 
   if (isUserLoading) {
     return (
